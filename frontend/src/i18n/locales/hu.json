@@ -1,0 +1,205 @@
+{
+  "navigation": {
+    "brandName": "LegalAct",
+    "batchProcessing": "Tömeges Feldolgozás",
+    "contactsDirectory": "Címtár",
+    "conflictSearch": "Ellenérdekű fél keresés",
+    "deadlineCalculator": "Határidő-számító",
+    "settings": "Platform Beállítások",
+    "staffMember": "Munkatárs",
+    "firmAdmin": "Irodai Adminisztrátor",
+    "logout": "Kilépés"
+  },
+  "dashboard": {
+    "batchTitle": "Tömeges Dokumentum Generátor",
+    "batchSubtitle": "Töltse fel az ügyfél adatállományát a relációs adatok feldolgozásához és a fájlok generálásához.",
+    "startNewBatch": "Új Generálás Kezdése",
+    "processingComplete": "Feldolgozás befejeződött!",
+    "filesGenerated_one": "{{count}} fájl sikeresen generálva.",
+    "filesGenerated_other": "{{count}} fájl sikeresen generálva.",
+    "readyForDownload": "A fájl készen áll a letöltésre.",
+    "downloadNow": "Letöltés",
+    "downloadStarted": "Letöltés megkezdve",
+    "downloadSuccess": "A fájl sikeresen letöltve!",
+    "pipelineStatus": "Folyamat Állapota",
+    "uploading": "Fájl feltöltése és adatok elemzése...",
+    "generating": "Relációs adatok feldolgozása és dokumentumok generálása...",
+    "processingFailed": "Sikertelen Feldolgozás",
+    "errorGeneric": "Váratlan hiba történt a feldolgozás során."
+  },
+  "fileDrop": {
+    "optionsTitle": "Feldolgozási Opciók",
+    "importContacts": "Partnerek importálása az adatbázisba",
+    "importContactsSub": "Ha be van jelölve, a jogsértők és ügyek bekerülnek a Supabase címtárba.",
+    "formatRequired": "Kimeneti Formátum",
+    "genBoth": "Mindkettő Generálása",
+    "genBothSub": "Excel és egyedi Word dokumentumok készítése.",
+    "wordOnly": "Csak Word Dokumentumok",
+    "wordOnlySub": "Egyedi .docx fájl minden ügyhöz.",
+    "excelOnly": "Aggregált Excel",
+    "excelOnlySub": "Csak az egyesített Excel fájlt készíti el.",
+    "dragDrop": "Húzza ide az adathalmazt (.xlsx)",
+    "browse": "Vagy kattintson a tallózáshoz",
+    "selectFile": "Fájl Kiválasztása",
+    "uploadedDataset": "Feltöltött Adathalmaz",
+    "unsupportedFile": "Nem támogatott fájltípus: {{name}}. Kérjük, .xlsx fájlt töltsön fel.",
+    "onlyOneExcel": "Csak egy Excel fájl megengedett.",
+    "processBatch": "Feldolgozás Indítása",
+    "processing": "Feldolgozás..."
+  },
+  "intakeForm": {
+    "title": "LegalAct",
+    "subtitle": "Ügyfélkapu",
+    "instructions": "Kérjük, adja meg a szükséges adatokat és a bizonyítékokat az ügy rögzítéséhez és a felszólító levél automatikus generálásához.",
+    "customerName": "Az Ön neve",
+    "company": "Jogsértő cég neve",
+    "phone": "Telefonszám",
+    "evidenceLinks": "Bizonyítékok (PicRights linkek)",
+    "addLink": "Új link hozzáadása",
+    "submit": "Ügy rögzítése és dokumentumok generálása",
+    "submitting": "Feldolgozás...",
+    "successTitle": "Beküldés rögzítve",
+    "successMessage": "Köszönjük. Ügyét és a csatolt bizonyítékokat megkaptuk. A felszólító levelet a rendszerünk automatikusan elkészítette.",
+    "successSubMessage": "Munkatársunk hamarosan keresni fogja a megadott elérhetőségen.",
+    "errorMissingFields": "Minden csillaggal jelölt mező kitöltése kötelező.",
+    "errorInvalidPhone": "Kérjük, érvényes telefonszámot adjon meg (+36... vagy 06...).",
+    "errorMissingLinks": "Kérjük, adjon meg legalább egy linket a bizonyítékhoz.",
+    "errorTitle": "Sikertelen beküldés",
+    "gdprNotice": "Minden adatot a GDPR előírásainak megfelelően, bizalmasan kezelünk."
+  },
+  "calculator": {
+    "title": "Határidő-számító (Pp.)",
+    "subtitle": "A polgári perrendtartás szerinti munkanap-alapú határidők automatikus kalkulátora. Automatikusan kihagyja a hétvégéket és az állami ünnepnapokat.",
+    "dateOfNotice": "Kézbesítés dátuma",
+    "duration": "Határidő hossza",
+    "days8": "8 nap",
+    "days15": "15 nap",
+    "days30": "30 nap",
+    "orCustom": "Vagy egyedi:",
+    "daysInputPlaceholder": "Pl. 45",
+    "daysSuffix": "nap",
+    "finalDeadline": "Kalkulált Határidő",
+    "selectStartDate": "Válasszon kezdődátumot",
+    "enterDays": "Adja meg a napok számát",
+    "lastDayOfDeadline": "A határidő utolsó napja:",
+    "deadlineWarning": "Ez a dátum a Pp. szerinti legutolsó érvényes munkanap a benyújtásra.",
+    "negativeDaysError": "A hozzáadott napok száma nem lehet negatív."
+  },
+  "contacts": {
+    "title": "Címtár",
+    "subtitle": "A mentett jogsértők és a hozzájuk tartozó ügyek listája.",
+    "searchPlaceholder": "Keresés cég vagy ügyfél alapján...",
+    "exportCsv": "CSV Export",
+    "loading": "Címtár betöltése...",
+    "failedToLoad": "Sikertelen Betöltés",
+    "noContacts": "Nincs találat",
+    "noContactsSearch": "Próbálja megváltoztatni a keresési feltételeket.",
+    "noContactsEmpty": "A címtár feltöltéséhez futtasson le egy Excel feldolgozást.",
+    "colId": "Jogsértő ID",
+    "colCompany": "Cégnév",
+    "colClientNames": "Ügyfél neve(i)",
+    "colPhone": "Telefonszám",
+    "colCases": "Ügyek száma",
+    "unknown": "Ismeretlen"
+  },
+  "conflict": {
+    "title": "Ellenérdekű fél keresés",
+    "subtitle": "Azonnal átvizsgálja az összes rögzített ügyet és partnert, hogy kiszűrje a potenciális összeférhetetlenséget új ügyfél felvétele előtt.",
+    "searchPlaceholder": "Keresés név, cégnév vagy telefonszám alapján...",
+    "searchError": "Keresési Hiba",
+    "noConflictsTitle": "Nincs összeférhetetlenség",
+    "noConflictsMessage": "Nem találtunk egyezést a(z) \"{{term}}\" kifejezésre a rendszerben.",
+    "foundPotential": "Találat:",
+    "potentialConflict_one": "potenciális konfliktus",
+    "potentialConflict_other": "potenciális konfliktus",
+    "matched": "Egyezés:",
+    "caseId": "Ügyszám",
+    "enterQuery": "Írjon be egy kifejezést a keresés megkezdéséhez."
+  },
+  "redaction": {
+    "title": "Automatikus Dokumentum Kitakarás",
+    "subtitle": "Érzékeny adatok automatikus kitakarása (redact) az összes generált Word dokumentumban a letöltés előtt.",
+    "redactPhones": "Minden telefonszám kitakarása",
+    "redactEmails": "E-mail címek kitakarása",
+    "customTextLabel": "Egyedi szöveg / név kitakarása",
+    "customTextPlaceholder": "Pl. Kovács János",
+    "apply": "Kitakarás Alkalmazása",
+    "applying": "Dokumentumok kitakarása...",
+    "success": "Automatikus kitakarás sikeresen alkalmazva"
+  },
+  "automations": {
+    "libraryTitle": "Automatizációs Könyvtár",
+    "librarySubtitle": "Válasszon egy előre épített jogi munkafolyamat sablont az iroda számára.",
+    "back": "Vissza az automatizációkhoz",
+    "trigger": "Indító",
+    "configure": "Konfigurálás",
+    "toolNotFound": "A kért eszköz nem található.",
+    "errorMissingFields": "Kérjük, töltsön ki minden kötelező mezőt!",
+    "saveError": "Hiba történt a mentés során.",
+    "successMessage": "Automatizáció sikeresen bekapcsolva!",
+    "activeIntegrations": "Aktív Integrációk",
+    "connectedTo": "Kapcsolódva:",
+    "configuration": "Konfiguráció",
+    "selectDefault": "-- Válasszon --",
+    "cancel": "Mégse",
+    "saveAndTurnOn": "Mentés és Bekapcsolás",
+
+    "demandLetter": {
+      "title": "Felszólító levél generátor",
+      "desc": "Automatikusan generál felszólító leveleket a beérkező űrlapok alapján, és elmenti őket a megadott SharePoint mappába.",
+      "fields": {
+        "intakeForm": { "label": "Űrlap kiválasztása" },
+        "outputFolder": { "label": "Célmappa (SharePoint)" }
+      }
+    },
+    "conflictCheck": {
+      "title": "Ellenérdekű fél keresés",
+      "desc": "Figyeli a bejövő emaileket, és automatikusan ellenőrzi a feladót vagy az említett cégeket a PostgreSQL adatbázisban.",
+      "fields": {
+        "monitoredInbox": { "label": "Figyelt e-mail fiók" },
+        "teamsChannel": { "label": "Értesítési csatorna (Teams)" }
+      }
+    },
+    "kyc": {
+      "title": "Ügyfélazonosító és Tényvázlat",
+      "desc": "Új ügyfél esetén automatikusan elküldi a KYC űrlapot, majd az eredményből PDF tényvázlatot készít.",
+      "fields": {
+        "kycTemplate": { "label": "KYC űrlap sablon" },
+        "senderEmail": { "label": "Küldő e-mail cím" }
+      }
+    },
+    "courtAlert": {
+      "title": "Napi határidő és tárgyalás értesítő",
+      "desc": "Minden reggel ellenőrzi az adatbázist a közelgő (3 napon belüli) határidőkért, és napi összefoglalót küld Teams-en.",
+      "fields": {
+        "caseDatabase": { "label": "Ügy-adatbázis kiválasztása" },
+        "alertTime": {
+          "label": "Értesítés időpontja",
+          "placeholder": "Pl. 08:00"
+        }
+      }
+    },
+    "invoiceReminder": {
+      "title": "Díjbekérő emlékeztető",
+      "desc": "Automatikusan e-mailt küld a lejárt fizetési határidejű díjbekérők esetén.",
+      "fields": {
+        "overdueThreshold": {
+          "label": "Késedelem napokban",
+          "placeholder": "Pl. 5"
+        },
+        "replyTo": {
+          "label": "Válaszcím (Reply-To)",
+          "placeholder": "penzugy@lawfirm.hu"
+        }
+      }
+    },
+    "evidenceRouter": {
+      "title": "Beérkező iratok szortírozása",
+      "desc": "A megadott fiókba érkező csatolmányokat ügyszám alapján automatikusan a megfelelő SharePoint mappába menti.",
+      "fields": {
+        "inboxToMonitor": { "label": "Figyelt e-mail fiók" },
+        "masterSite": { "label": "Fő webhely (SharePoint)" }
+      }
+    }
+  }
+}

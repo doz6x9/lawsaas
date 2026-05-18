@@ -1,0 +1,214 @@
+{
+  "navigation": {
+    "brandName": "LegalAct",
+    "batchProcessing": "Batch Processing",
+    "contactsDirectory": "Contacts Directory",
+    "conflictSearch": "Conflict Search",
+    "deadlineCalculator": "Deadline Calculator",
+    "settings": "Platform Settings",
+    "staffMember": "Staff Member",
+    "firmAdmin": "Firm Admin",
+    "logout": "Sign out"
+  },
+  "dashboard": {
+    "batchTitle": "Batch Document Processor",
+    "batchSubtitle": "Upload your client dataset to automatically process the relational data and generate all files.",
+    "startNewBatch": "Start New Batch",
+    "processingComplete": "Processing Complete!",
+    "filesGenerated_one": "{{count}} file successfully generated.",
+    "filesGenerated_other": "{{count}} files successfully generated.",
+    "readyForDownload": "Your file is ready for download.",
+    "downloadNow": "Download Now",
+    "downloadStarted": "Download Started",
+    "downloadSuccess": "Your file has been downloaded successfully!",
+    "pipelineStatus": "Pipeline Status",
+    "uploading": "Uploading file and parsing dataset...",
+    "generating": "Processing relational data and generating files...",
+    "processingFailed": "Processing Failed",
+    "errorGeneric": "An unexpected error occurred during processing."
+  },
+  "fileDrop": {
+    "optionsTitle": "Processing Options",
+    "importContacts": "Import Contacts to Database",
+    "importContactsSub": "If checked, parsed infringers and cases will be saved/updated in the Supabase directory.",
+    "formatRequired": "Output Format Required",
+    "genBoth": "Generate Both",
+    "genBothSub": "Generates Excel & individual Word docs.",
+    "wordOnly": "Word Docs Only",
+    "wordOnlySub": "Generates a unique .docx file per case.",
+    "excelOnly": "Aggregated Excel",
+    "excelOnlySub": "Only generates the combined Excel sheet.",
+    "dragDrop": "Drag and drop your dataset (.xlsx) here",
+    "browse": "Or click to browse files",
+    "selectFile": "Select File",
+    "uploadedDataset": "Uploaded Dataset",
+    "unsupportedFile": "Unsupported file type: {{name}}. Please upload a .xlsx file.",
+    "onlyOneExcel": "Only one Excel file is allowed.",
+    "processBatch": "Process Batch",
+    "processing": "Processing..."
+  },
+  "intakeForm": {
+    "title": "LegalAct",
+    "subtitle": "Intake",
+    "instructions": "Please provide the required information and evidence links to log the case and automatically generate the demand letter.",
+    "customerName": "Customer Name",
+    "company": "Company Name (Infringer)",
+    "phone": "Phone Number",
+    "evidenceLinks": "Evidence Links (PicRights URLs)",
+    "addLink": "Add new link",
+    "submit": "Submit Data",
+    "submitting": "Processing data and generating documents...",
+    "successTitle": "Successfully Submitted!",
+    "successMessage": "Thank you! Your case has been logged and the automated document generation is complete.",
+    "successSubMessage": "Our firm will contact you shortly.",
+    "errorMissingFields": "Please fill out all required fields!",
+    "errorInvalidPhone": "Invalid phone number format. Please use the +36 format.",
+    "errorMissingLinks": "Please provide at least one valid evidence link.",
+    "errorTitle": "Error Occurred",
+    "gdprNotice": "Your data is handled securely and in compliance with GDPR regulations."
+  },
+  "calculator": {
+    "title": "Procedural Deadline Calculator (Pp.)",
+    "subtitle": "Automatic calculator for working-day-based deadlines under civil procedure. Automatically skips weekends and national holidays.",
+    "dateOfNotice": "Date of Notice",
+    "duration": "Deadline Duration",
+    "days8": "8 days",
+    "days15": "15 days",
+    "days30": "30 days",
+    "orCustom": "Or custom:",
+    "daysInputPlaceholder": "E.g. 45",
+    "daysSuffix": "days",
+    "finalDeadline": "Calculated Final Deadline",
+    "selectStartDate": "Select a start date",
+    "enterDays": "Enter number of days",
+    "lastDayOfDeadline": "The final day of the deadline is:",
+    "deadlineWarning": "This is the very last valid working day to submit under procedural law.",
+    "negativeDaysError": "The number of days to add cannot be negative."
+  },
+  "contacts": {
+    "title": "Contacts Directory",
+    "subtitle": "Master list of all stored infringers and their related case counts.",
+    "searchPlaceholder": "Search by company or client...",
+    "exportCsv": "Export CSV",
+    "loading": "Loading directory...",
+    "failedToLoad": "Failed to Load",
+    "noContacts": "No contacts found",
+    "noContactsSearch": "Try adjusting your search terms.",
+    "noContactsEmpty": "Process an Excel batch to populate the directory.",
+    "colId": "Infringer ID",
+    "colCompany": "Company Name",
+    "colClientNames": "Client Name(s)",
+    "colPhone": "Phone Number",
+    "colCases": "Total Cases",
+    "unknown": "Unknown"
+  },
+  "conflict": {
+    "title": "Conflict of Interest Search",
+    "subtitle": "Instantly scan all recorded cases, clients, and infringers to identify potential conflicts before onboarding a new client.",
+    "searchPlaceholder": "Search by name, company, or phone number...",
+    "searchError": "Search Error",
+    "noConflictsTitle": "No Conflicts Found",
+    "noConflictsMessage": "We couldn't find any matches for \"{{term}}\" across our records.",
+    "foundPotential": "Found",
+    "potentialConflict_one": "Potential Conflict",
+    "potentialConflict_other": "Potential Conflicts",
+    "matched": "Matched:",
+    "caseId": "Case ID",
+    "enterQuery": "Enter a query above to scan for conflicts."
+  },
+  "redaction": {
+    "title": "Automated Document Redaction",
+    "subtitle": "Automatically blackout sensitive patterns across all generated Word documents before downloading.",
+    "redactPhones": "Redact all Phone Numbers",
+    "redactEmails": "Redact Emails",
+    "customTextLabel": "Custom Text / Names to Redact",
+    "customTextPlaceholder": "e.g. John Doe",
+    "apply": "Apply Redactions",
+    "applying": "Redacting Documents...",
+    "success": "Automated Redaction Applied"
+  },
+  "automations": {
+    "libraryTitle": "Legal Automations Library",
+    "librarySubtitle": "Select a pre-built legal workflow template to configure and activate for your firm.",
+    "back": "Back to Automations",
+    "trigger": "Trigger",
+    "configure": "Configure",
+    "toolNotFound": "Tool not found.",
+    "errorMissingFields": "Please fill out all required fields!",
+    "saveError": "An error occurred during saving.",
+    "successMessage": "Automation successfully activated!",
+    "activeIntegrations": "Active Integrations",
+    "connectedTo": "Connected to",
+    "configuration": "Configuration",
+    "selectDefault": "-- Select --",
+    "cancel": "Cancel",
+    "saveAndTurnOn": "Save and Turn On",
+
+    "demandLetter": {
+      "title": "Automated Demand Letter",
+      "desc": "Automatically generates demand letters based on incoming forms and saves them to a specified SharePoint folder.",
+      "fields": {
+        "intakeForm": { "label": "Select Client Intake Form" },
+        "outputFolder": { "label": "Select Output SharePoint Folder" }
+      }
+    },
+    "conflictCheck": {
+      "title": "Automated Conflict Check",
+      "desc": "Monitors incoming emails and automatically checks the sender or mentioned companies in the PostgreSQL database.",
+      "fields": {
+        "monitoredInbox": { "label": "Monitored Email Inbox" },
+        "teamsChannel": { "label": "Teams Channel for Alerts" }
+      }
+    },
+    "kyc": {
+      "title": "KYC & Onboarding Pack",
+      "desc": "Automatically sends the KYC form for new clients, then creates a PDF fact sheet from the results.",
+      "fields": {
+        "kycTemplate": { "label": "Select KYC Form Template" },
+        "senderEmail": { "label": "Sender Email Address" }
+      }
+    },
+    "courtAlert": {
+      "title": "Court Deadline Alert",
+      "desc": "Checks the database every morning for upcoming deadlines (within 3 days) and sends a daily summary via Teams.",
+      "fields": {
+        "caseDatabase": { "label": "Select Case Database" },
+        "alertTime": {
+          "label": "Alert Time",
+          "placeholder": "e.g. 08:00"
+        },
+        "partnerEmail": {
+          "label": "Partner Email for Alerts",
+          "placeholder": "partner@lawfirm.com"
+        }
+      }
+    },
+    "invoiceReminder": {
+      "title": "Invoice Reminder",
+      "desc": "Automatically sends an email for invoices with overdue payment deadlines.",
+      "fields": {
+        "overdueThreshold": {
+          "label": "Overdue Threshold in Days",
+          "placeholder": "e.g. 5"
+        },
+        "replyTo": {
+          "label": "Reply-To Email",
+          "placeholder": "finance@lawfirm.com"
+        }
+      }
+    },
+    "evidenceRouter": {
+      "title": "Incoming Evidence Router",
+      "desc": "Automatically saves attachments arriving in the specified account to the corresponding SharePoint folder based on case number.",
+      "fields": {
+        "inboxToMonitor": { "label": "Inbox to Monitor" },
+        "masterSite": { "label": "Master SharePoint Site" }
+      }
+    }
+  },
+  "documentGen": {
+    "libraryTitle": "Document Generation Library",
+    "librarySubtitle": "Select a document template to generate.",
+    "back": "Back to Document Generation Library"
+  }
+}
