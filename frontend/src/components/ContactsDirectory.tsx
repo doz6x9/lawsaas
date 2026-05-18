@@ -37,7 +37,8 @@ export const ContactsDirectory: React.FC = () => {
     return contacts.filter(c =>
       c.company.toLowerCase().includes(lowerSearch) ||
       c.idInfringer.toLowerCase().includes(lowerSearch) ||
-      (c.clientNames && c.clientNames.toLowerCase().includes(lowerSearch))
+      (c.clientNames && c.clientNames.toLowerCase().includes(lowerSearch)) ||
+      (c.phones && c.phones.some(p => p.toLowerCase().includes(lowerSearch)))
     );
   }, [contacts, searchTerm]);
 
@@ -55,7 +56,7 @@ export const ContactsDirectory: React.FC = () => {
     const rows = filteredContacts.map(c => [
       `"${c.idInfringer.replace(/"/g, '""')}"`,
       `"${c.company.replace(/"/g, '""')}"`,
-      `"${c.phone.replace(/"/g, '""')}"`,
+      `"${(c.phones ? c.phones.join('; ') : '').replace(/"/g, '""')}"`,
       `"${(c.clientNames || '').replace(/"/g, '""')}"`,
       c.caseCount.toString()
     ].join(','));
@@ -166,7 +167,7 @@ export const ContactsDirectory: React.FC = () => {
                     {contact.company || <span className="text-gray-400 italic">{t('contacts.unknown')}</span>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                    {contact.phone || <span className="text-gray-400 italic">{t('contacts.unknown')}</span>}
+                    {contact.phones && contact.phones.length > 0 ? contact.phones.join(', ') : <span className="text-gray-400 italic">{t('contacts.unknown')}</span>}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">
                     {contact.clientNames || <span className="text-gray-400 italic">{t('contacts.unknown')}</span>}

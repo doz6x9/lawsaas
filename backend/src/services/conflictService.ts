@@ -15,6 +15,7 @@ export interface ConflictReport {
 
 /**
  * Executes a full-text search across the Contacts and Cases tables to identify potential conflicts.
+ * Uses fuzzy matching for company names.
  * @param searchQuery The company name, email domain, or phone number to search for.
  */
 export async function runConflictCheck(searchQuery: string): Promise<ConflictReport> {
@@ -23,55 +24,74 @@ export async function runConflictCheck(searchQuery: string): Promise<ConflictRep
   }
 
   const client = getSupabaseClient();
-  const term = `%${searchQuery.trim()}%`;
+  const rawQuery = searchQuery.trim();
+  const term = `%${rawQuery}%`;
   const report: ConflictReport = {
-    query: searchQuery,
+    query: rawQuery,
     totalConflicts: 0,
     conflicts: []
   };
 
   try {
-    // 1. Search Contacts table
-    const { data: contactsMatches, error: contactsError } = await client
-      .from('Contacts')
-      .select('idInfringer, company, phone, phone1')
-      .or(`company.ilike.${term},phone.ilike.${term},phone1.ilike.${term}`);
+    // 1. Search Contacts table (Company Name) - Fuzzy Matching via RPC
+    const { data: fuzzyContacts, error: fuzzyError } = await client.rpc('search_conflicts_fuzzy', {
+      search_term: rawQuery
+    });
 
-    if (contactsError) throw contactsError;
+    let contactsMatches: any[] = [];
+    if (fuzzyError) {
+      console.warn('Fuzzy search RPC failed, falling back to standard ilike:', fuzzyError);
+      const { data, error } = await client
+        .from('Contacts')
+        .select('idInfringer, company')
+        .ilike('company', term);
+      if (error) throw error;
+      if (data) contactsMatches = data;
+    } else if (fuzzyContacts) {
+      contactsMatches = fuzzyContacts;
+    }
 
-    if (contactsMatches && contactsMatches.length > 0) {
-      const infringerIds = contactsMatches.map(c => c.idInfringer);
+    // 2. Search in ContactPhones (Phone Number)
+    const { data: phonesMatches, error: phonesError } = await client
+      .from('ContactPhones')
+      .select('idInfringer, phoneNumber')
+      .ilike('phoneNumber', term);
 
-      // 2. For every matched contact, find associated cases
+    if (phonesError) throw phonesError;
+
+    // Combine unique infringer IDs from both searches
+    const infringerIds = new Set<string>();
+    contactsMatches?.forEach(c => infringerIds.add(c.idInfringer));
+    phonesMatches?.forEach(p => infringerIds.add(p.idInfringer));
+
+    if (infringerIds.size > 0) {
+      // Find all associated cases
       const { data: linkedCases, error: linkedCasesError } = await client
         .from('Cases')
         .select('idCase, idInfringer, createdAt')
-        .in('idInfringer', infringerIds);
+        .in('idInfringer', Array.from(infringerIds));
 
       if (linkedCasesError) throw linkedCasesError;
 
       if (linkedCases) {
         for (const caseRec of linkedCases) {
           const contact = contactsMatches.find(c => c.idInfringer === caseRec.idInfringer);
-          if (!contact) continue;
+          const phoneRec = phonesMatches?.find(p => p.idInfringer === caseRec.idInfringer);
 
-          const queryLower = searchQuery.toLowerCase();
-
-          if (contact.company && contact.company.toLowerCase().includes(queryLower)) {
+          if (contact && contact.company) {
             report.conflicts.push({
               caseId: caseRec.idCase,
               source: 'Company Match',
-              matchedText: contact.company,
+              matchedText: contact.company + (contact.similarity ? ` (Sim: ${Math.round(contact.similarity * 100)}%)` : ''),
               createdAt: caseRec.createdAt
             });
           }
 
-          if ((contact.phone && contact.phone.toLowerCase().includes(queryLower)) ||
-              (contact.phone1 && contact.phone1.toLowerCase().includes(queryLower))) {
+          if (phoneRec && phoneRec.phoneNumber && phoneRec.phoneNumber.toLowerCase().includes(rawQuery.toLowerCase())) {
             report.conflicts.push({
               caseId: caseRec.idCase,
               source: 'Phone Match',
-              matchedText: contact.phone || contact.phone1,
+              matchedText: phoneRec.phoneNumber,
               createdAt: caseRec.createdAt
             });
           }
@@ -82,7 +102,7 @@ export async function runConflictCheck(searchQuery: string): Promise<ConflictRep
     // Deduplicate identical matches
     report.conflicts = report.conflicts.filter((result, index, self) =>
       index === self.findIndex((t) => (
-        t.caseId === result.caseId && t.source === result.source
+        t.caseId === result.caseId && t.source === result.source && t.matchedText === result.matchedText
       ))
     );
 

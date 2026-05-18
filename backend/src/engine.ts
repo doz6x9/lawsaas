@@ -2,20 +2,21 @@ import * as ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import JSZip from 'jszip';
+import { v4 as uuidv4 } from 'uuid';
 
 // 1. Strict TypeScript Interfaces
 export interface CaseEntity {
-  idCase: string;
+  idCase: string; // Now UUID
   pass: string;
   customerName: string;
   idClient: string;
-  idInfringer: string;
+  idInfringer: string; // Now UUID
 }
 
 export interface ContactEntity {
-  idInfringer: string;
+  idInfringer: string; // Now UUID
   company: string;
-  phone1: string;
+  phone1: string; // This is raw from excel, will be mapped to ContactPhones
 }
 
 export interface AggregatedCase {
@@ -35,7 +36,7 @@ export type OutputFormat = 'excel' | 'docx' | 'both';
 export interface DirectoryContact {
   idInfringer: string;
   company: string;
-  phone: string;
+  phones: string[]; // Updated to use array instead of single phone string
   caseCount: number;
   clientNames: string;
 }
@@ -49,7 +50,7 @@ export interface ConflictSearchResult {
 // Lazy initialization of Supabase client to ensure process.env is loaded
 let supabase: SupabaseClient | null = null;
 
-function getSupabaseClient() {
+export function getSupabaseClient() {
   if (supabase) return supabase;
 
   const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -64,7 +65,8 @@ function getSupabaseClient() {
 }
 
 /**
- * Executes a full-text search query across Cases and Contacts to identify conflicts of interest.
+ * Executes a full-text search query across Cases, Contacts, and ContactPhones to identify conflicts of interest.
+ * Uses fuzzy matching for company names.
  * @param query - The string to search for (Company, Customer Name, or Phone)
  */
 export async function searchConflicts(query: string): Promise<ConflictSearchResult[]> {
@@ -78,11 +80,11 @@ export async function searchConflicts(query: string): Promise<ConflictSearchResu
   }
 
   const searchTerm = `%${query.trim()}%`;
+  const rawQuery = query.trim();
   const results: ConflictSearchResult[] = [];
 
   try {
-    // 1. Search in Cases (Customer Name)
-    // Supabase string matching (ilike) handles UTF-8 characters natively via Postgres
+    // 1. Search in Cases (Customer Name) - Exact/ilike
     const { data: casesMatches, error: casesError } = await client
       .from('Cases')
       .select('idCase, customerName')
@@ -100,59 +102,84 @@ export async function searchConflicts(query: string): Promise<ConflictSearchResu
       });
     }
 
-    // 2. Search in Contacts (Company Name and Phone)
-    // We need to use an OR condition to search multiple columns
-    const { data: contactsMatches, error: contactsError } = await client
-      .from('Contacts')
-      .select('idInfringer, company, phone, phone1')
-      .or(`company.ilike.${searchTerm},phone.ilike.${searchTerm},phone1.ilike.${searchTerm}`);
+    // 2. Search in Contacts (Company Name) - Fuzzy Matching via RPC
+    const { data: fuzzyContacts, error: fuzzyError } = await client.rpc('search_conflicts_fuzzy', {
+      search_term: rawQuery
+    });
 
-    if (contactsError) throw contactsError;
+    // If the RPC fails (e.g. pg_trgm not installed), fallback to standard ilike
+    let contactsMatches: any[] = [];
+    if (fuzzyError) {
+      console.warn('Fuzzy search RPC failed, falling back to standard ilike:', fuzzyError);
+      const { data, error } = await client
+        .from('Contacts')
+        .select('idInfringer, company')
+        .ilike('company', searchTerm);
+      if (error) throw error;
+      if (data) contactsMatches = data;
+    } else if (fuzzyContacts) {
+      // Filter by a reasonable similarity threshold if desired, or just take the results
+      contactsMatches = fuzzyContacts;
+    }
 
-    if (contactsMatches && contactsMatches.length > 0) {
-      // For each matched contact, we need to find all associated cases
-      const infringerIds = contactsMatches.map(c => c.idInfringer);
+    // 3. Search in ContactPhones (Phone Number)
+    const { data: phonesMatches, error: phonesError } = await client
+      .from('ContactPhones')
+      .select('idInfringer, phoneNumber')
+      .ilike('phoneNumber', searchTerm);
 
+    if (phonesError) throw phonesError;
+
+    // Combine unique infringer IDs from both searches
+    const infringerIds = new Set<string>();
+    contactsMatches?.forEach(c => infringerIds.add(c.idInfringer));
+    phonesMatches?.forEach(p => infringerIds.add(p.idInfringer));
+
+    if (infringerIds.size > 0) {
+      // Find all associated cases
       const { data: linkedCases, error: linkedCasesError } = await client
         .from('Cases')
         .select('idCase, idInfringer')
-        .in('idInfringer', infringerIds);
+        .in('idInfringer', Array.from(infringerIds));
 
       if (linkedCasesError) throw linkedCasesError;
 
       if (linkedCases) {
         linkedCases.forEach(c => {
-          const contact = contactsMatches.find(cont => cont.idInfringer === c.idInfringer);
-          if (contact) {
-            const queryLower = query.toLowerCase();
+          const contact = contactsMatches?.find(cont => cont.idInfringer === c.idInfringer);
+          const phoneRec = phonesMatches?.find(p => p.idInfringer === c.idInfringer);
 
-            if (contact.company && contact.company.toLowerCase().includes(queryLower)) {
-              results.push({
-                idCase: c.idCase,
-                matchType: 'Infringer Company',
-                matchedText: contact.company
-              });
-            }
-            if ((contact.phone && contact.phone.toLowerCase().includes(queryLower)) ||
-                (contact.phone1 && contact.phone1.toLowerCase().includes(queryLower))) {
-              results.push({
-                idCase: c.idCase,
-                matchType: 'Infringer Phone',
-                matchedText: contact.phone || contact.phone1
-              });
-            }
+          if (contact && contact.company) {
+            // For fuzzy match, we don't strictly check if it includes the string, because it's fuzzy!
+            results.push({
+              idCase: c.idCase,
+              matchType: 'Infringer Company',
+              matchedText: contact.company + (contact.similarity ? ` (Sim: ${Math.round(contact.similarity * 100)}%)` : '')
+            });
+          }
+          if (phoneRec && phoneRec.phoneNumber && phoneRec.phoneNumber.toLowerCase().includes(rawQuery.toLowerCase())) {
+            results.push({
+              idCase: c.idCase,
+              matchType: 'Infringer Phone',
+              matchedText: phoneRec.phoneNumber
+            });
           }
         });
       }
     }
 
-    // Deduplicate results (in case a single case matches multiple conditions, though rare)
-    // We want to keep all unique combinations of idCase and matchType
+    // Deduplicate results
     const uniqueResults = results.filter((result, index, self) =>
       index === self.findIndex((t) => (
-        t.idCase === result.idCase && t.matchType === result.matchType
+        t.idCase === result.idCase && t.matchType === result.matchType && t.matchedText === result.matchedText
       ))
     );
+
+    // Audit Log the Search Action
+    await client.from('AuditLogs').insert({
+      action: 'CONFLICT_SEARCH_PERFORMED',
+      details: { query: rawQuery, resultsFound: uniqueResults.length, timestamp: new Date().toISOString() }
+    }).catch(e => console.error("Failed to write audit log:", e));
 
     return uniqueResults;
 
@@ -181,6 +208,12 @@ export async function getContactsDirectory(): Promise<DirectoryContact[]> {
     if (contactsError) throw contactsError;
     if (!contacts) return [];
 
+    const { data: phones, error: phonesError } = await client
+      .from('ContactPhones')
+      .select('idInfringer, phoneNumber');
+
+    if (phonesError) throw phonesError;
+
     const { data: cases, error: casesError } = await client
       .from('Cases')
       .select('idInfringer, customerName');
@@ -189,6 +222,16 @@ export async function getContactsDirectory(): Promise<DirectoryContact[]> {
 
     const caseCountMap: Record<string, number> = {};
     const clientNamesMap: Record<string, Set<string>> = {};
+    const phonesMap: Record<string, string[]> = {};
+
+    if (phones) {
+      phones.forEach(p => {
+        if (!phonesMap[p.idInfringer]) {
+          phonesMap[p.idInfringer] = [];
+        }
+        phonesMap[p.idInfringer].push(p.phoneNumber);
+      });
+    }
 
     if (cases) {
       cases.forEach(c => {
@@ -215,7 +258,7 @@ export async function getContactsDirectory(): Promise<DirectoryContact[]> {
       return {
         idInfringer: id,
         company: c.company || '',
-        phone: c.phone || c.phone1 || '',
+        phones: phonesMap[id] || [],
         caseCount: caseCountMap[id] || 0,
         clientNames
       };
@@ -229,7 +272,7 @@ export async function getContactsDirectory(): Promise<DirectoryContact[]> {
 
 /**
  * Imports the aggregated cases into the Supabase database.
- * Upserts contacts and inserts cases.
+ * Upserts contacts, contact phones, and inserts cases.
  */
 async function importCasesToDatabase(cases: AggregatedCase[]) {
   const client = getSupabaseClient();
@@ -239,31 +282,41 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
   }
 
   const contactsToUpsert = new Map<string, any>();
+  const phonesToUpsert: any[] = [];
   const casesToUpsert = new Map<string, any>();
   const imagesToInsert: any[] = [];
 
   for (const aggCase of cases) {
-    if (aggCase.contactData && aggCase.contactData.idInfringer) {
-      contactsToUpsert.set(aggCase.contactData.idInfringer, {
-        idInfringer: aggCase.contactData.idInfringer,
+    const contactUuid = uuidv4();
+    const caseUuid = uuidv4();
+
+    if (aggCase.contactData) {
+      contactsToUpsert.set(contactUuid, {
+        idInfringer: contactUuid,
         company: aggCase.contactData.company,
-        phone1: aggCase.contactData.phone1,
-        phone: aggCase.contactData.phone1 // populate both just in case
       });
+
+      if (aggCase.contactData.phone1) {
+        phonesToUpsert.push({
+          idInfringer: contactUuid,
+          phoneNumber: aggCase.contactData.phone1,
+          isPrimary: true
+        });
+      }
     }
 
-    if (aggCase.caseData && aggCase.caseData.idCase) {
-      casesToUpsert.set(aggCase.caseData.idCase, {
-        idCase: aggCase.caseData.idCase,
+    if (aggCase.caseData) {
+      casesToUpsert.set(caseUuid, {
+        idCase: caseUuid,
         pass: aggCase.caseData.pass,
         customerName: aggCase.caseData.customerName,
         idClient: aggCase.caseData.idClient,
-        idInfringer: aggCase.caseData.idInfringer
+        idInfringer: contactUuid
       });
 
       for (const url of aggCase.imageUrls) {
         imagesToInsert.push({
-          idCase: aggCase.caseData.idCase,
+          idCase: caseUuid,
           catalogImagePath: url
         });
       }
@@ -283,6 +336,18 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
       }
     }
 
+    // 1.5 Insert ContactPhones
+    if (phonesToUpsert.length > 0) {
+      const { error: phonesErr } = await client
+        .from('ContactPhones')
+        .insert(phonesToUpsert);
+
+      if (phonesErr) {
+        console.error('Error inserting contact phones:', phonesErr);
+        // Continue, as this isn't strictly fatal for the whole batch
+      }
+    }
+
     // 2. Upsert Cases
     if (casesToUpsert.size > 0) {
       const { error: casesErr } = await client
@@ -295,29 +360,34 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
       }
     }
 
-    // 3. Insert Images (Since these don't typically have a unique ID in the excel sheet,
-    // we might just insert them. Ideally we should delete existing images for the cases first to avoid duplicates)
+    // 3. Insert Images
     if (imagesToInsert.length > 0) {
-      // Clean up old images for these cases to avoid duplicates
       const caseIds = Array.from(casesToUpsert.keys());
 
-      // We chunk the deletes to avoid URL too long issues if there are many cases
       const chunkSize = 100;
       for (let i = 0; i < caseIds.length; i += chunkSize) {
         const chunk = caseIds.slice(i, i + chunkSize);
         await client.from('Images').delete().in('idCase', chunk);
       }
 
-      // Insert new images
       const { error: imagesErr } = await client
         .from('Images')
         .insert(imagesToInsert);
 
       if (imagesErr) {
         console.error('Error inserting images:', imagesErr);
-        // Don't fail the whole import if just images fail, but log it.
       }
     }
+
+    // Audit Log the Import Action
+    await client.from('AuditLogs').insert({
+      action: 'BATCH_DATA_IMPORTED',
+      details: {
+        contactsImported: contactsToUpsert.size,
+        casesImported: casesToUpsert.size,
+        timestamp: new Date().toISOString()
+      }
+    }).catch(e => console.error("Failed to write audit log:", e));
 
     console.log(`Successfully imported ${contactsToUpsert.size} contacts and ${casesToUpsert.size} cases.`);
   } catch (err) {
@@ -692,3 +762,5 @@ export async function redactDocument(docxBuffer: Buffer, targets: string[]): Pro
 
   return updatedBuffer;
 }
+
+export { getSupabaseClient };

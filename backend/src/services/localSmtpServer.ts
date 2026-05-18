@@ -1,4 +1,5 @@
-import { SMTPServer } from 'smtp-server';
+import { SMTPServer, SMTPServerOptions, Connection, Credentials, SendStatus, MailFrom, RcptTo } from 'smtp-server';
+import { Writable } from 'stream';
 
 const PORT = parseInt(process.env.LOCAL_SMTP_PORT || '2525');
 
@@ -17,32 +18,30 @@ export const receivedEmails: {
  * Emails received by this server are stored in memory.
  */
 export function startLocalSmtpServer() {
-  const smtpServer = new SMTPServer({
-    allowInsecureAuth: true, // Allow plain text authentication for local testing
-    authOptional: true,      // No authentication required for local testing
-    onConnect(session: any, callback: any) {
+  const options: SMTPServerOptions = {
+    allowInsecureAuth: true,
+    authOptional: true,
+    onConnect(session: Connection, callback: (err?: Error) => void) {
       console.log(`[Local SMTP] Client connected: ${session.remoteAddress}`);
-      callback(); // Accept the connection
+      callback();
     },
-    onMailFrom(address: any, session: any, callback: any) {
+    onMailFrom(address: MailFrom, session: Connection, callback: (err?: Error) => void) {
       console.log(`[Local SMTP] Mail from: ${address.address}`);
-      callback(); // Accept the address
+      callback();
     },
-    onRcptTo(address: any, session: any, callback: any) {
+    onRcptTo(address: RcptTo, session: Connection, callback: (err?: Error) => void) {
       console.log(`[Local SMTP] Mail to: ${address.address}`);
-      callback(); // Accept the address
+      callback();
     },
-    onData(stream: any, session: any, callback: any) {
+    onData(stream: Writable, session: Connection, callback: (err?: Error) => void) {
       let emailContent = '';
-      stream.on('data', (chunk: any) => (emailContent += chunk.toString()));
+      stream.on('data', (chunk: Buffer) => (emailContent += chunk.toString()));
       stream.on('end', () => {
         try {
-          // Basic parsing to extract subject, from, to, and body
           const fromMatch = emailContent.match(/From: (.*)\n/);
           const toMatch = emailContent.match(/To: (.*)\n/);
           const subjectMatch = emailContent.match(/Subject: (.*)\n/);
 
-          // For HTML/Text content, this is a very basic extraction.
           const htmlMatch = emailContent.match(/Content-Type: text\/html;.*?\n\n([\s\S]*?)(?=\n--_)/i);
           const textMatch = emailContent.match(/Content-Type: text\/plain;.*?\n\n([\s\S]*?)(?=\n--_)/i);
 
@@ -62,12 +61,13 @@ export function startLocalSmtpServer() {
         }
       });
     },
-    onClose(session: any) {
-      console.log(`[Local SMTP] Client disconnected: ${session.remoteAddress}`);
-    },
-    onError(err: any) {
-      console.error('[Local SMTP] Server error:', err);
-    }
+    // onError is a server event, not an option for the constructor
+  };
+
+  const smtpServer = new SMTPServer(options);
+
+  smtpServer.on('error', (err: Error) => {
+    console.error('[Local SMTP] Server error:', err);
   });
 
   smtpServer.listen(PORT, () => {

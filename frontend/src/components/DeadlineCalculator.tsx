@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, AlertCircle, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, AlertCircle, Clock, ArrowRight, Loader2 } from 'lucide-react';
 import { calculateLegalDeadline } from '../utils/dateCalculator';
 
 export const DeadlineCalculator: React.FC = () => {
@@ -9,6 +9,9 @@ export const DeadlineCalculator: React.FC = () => {
   const [daysToAdd, setDaysToAdd] = useState<number | ''>('');
   const [customDays, setCustomDays] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+
+  const [calculatedDeadline, setCalculatedDeadline] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const handlePresetSelect = (days: number) => {
     setDaysToAdd(days);
@@ -35,28 +38,40 @@ export const DeadlineCalculator: React.FC = () => {
     }
   };
 
-  const calculatedDeadline = useMemo(() => {
-    if (!startDateStr || daysToAdd === '' || error) return null;
-
-    try {
-      const [year, month, day] = startDateStr.split('-').map(Number);
-      const startDate = new Date(year, month - 1, day);
-
-      const deadlineDate = calculateLegalDeadline(startDate, daysToAdd);
-
-      const locale = i18n.language.startsWith('hu') ? 'hu-HU' : 'en-US';
-      return new Intl.DateTimeFormat(locale, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'long'
-      }).format(deadlineDate);
-    } catch (err) {
-      if (err instanceof Error && err.message === 'negativeDaysError') {
-        setError(t('calculator.negativeDaysError'));
+  useEffect(() => {
+    const calculate = async () => {
+      if (!startDateStr || daysToAdd === '' || error) {
+        setCalculatedDeadline(null);
+        return;
       }
-      return null;
-    }
+
+      setIsCalculating(true);
+      try {
+        const [year, month, day] = startDateStr.split('-').map(Number);
+        const startDate = new Date(year, month - 1, day);
+
+        const deadlineDate = await calculateLegalDeadline(startDate, daysToAdd as number);
+
+        const locale = i18n.language.startsWith('hu') ? 'hu-HU' : 'en-US';
+        const formatted = new Intl.DateTimeFormat(locale, {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        }).format(deadlineDate);
+
+        setCalculatedDeadline(formatted);
+      } catch (err) {
+        if (err instanceof Error && err.message === 'negativeDaysError') {
+          setError(t('calculator.negativeDaysError'));
+        }
+        setCalculatedDeadline(null);
+      } finally {
+        setIsCalculating(false);
+      }
+    };
+
+    calculate();
   }, [startDateStr, daysToAdd, i18n.language, error, t]);
 
   return (
@@ -155,7 +170,12 @@ export const DeadlineCalculator: React.FC = () => {
               ? 'bg-[#FFF4CE] border-[#D83B01]'
               : 'bg-[#F3F2F1] border-transparent'
           }`}>
-            {!startDateStr ? (
+            {isCalculating ? (
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 text-[#0078D4] mx-auto mb-2 animate-spin" />
+                <p className="text-gray-500 text-sm font-semibold">Calculating...</p>
+              </div>
+            ) : !startDateStr ? (
               <div className="text-center">
                 <Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-500 text-sm font-semibold">{t('calculator.selectStartDate')}</p>
@@ -165,7 +185,7 @@ export const DeadlineCalculator: React.FC = () => {
                 <ArrowRight className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                 <p className="text-gray-500 text-sm font-semibold">{t('calculator.enterDays')}</p>
               </div>
-            ) : (
+            ) : calculatedDeadline ? (
               <div className="text-center">
                 <AlertCircle className="w-8 h-8 text-[#D83B01] mx-auto mb-2" />
                 <p className="text-xs text-gray-700 font-semibold mb-1 uppercase tracking-wider">{t('calculator.lastDayOfDeadline')}</p>
@@ -176,7 +196,7 @@ export const DeadlineCalculator: React.FC = () => {
                   {t('calculator.deadlineWarning')}
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,14 +1,12 @@
-import fs from 'fs-extra'; // Using fs-extra for promise-based file operations
+import fs from 'fs-extra';
 import path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
-import libreoffice from 'libreoffice-convert'; // No types available, will be treated as 'any'
-import { promisify } from 'util';
+import axios from 'axios';
+import FormData from 'form-data';
 
-import { TEMPLATE_CONFIGS, TemplatePayload, OutputFormat } from '../types/templates';
-
-// Promisify libreoffice.convert, casting libreoffice to any to bypass TS error for missing types
-const convertToPdf = promisify((libreoffice as any).convert);
+// Note: TEMPLATE_CONFIGS was moved to the frontend. We validate using SUPPORTED_TEMPLATES.
+import { SUPPORTED_TEMPLATES, TemplatePayload, OutputFormat } from '../types/templates';
 
 /**
  * Generates an EU-specific legal document by populating a base .docx template with the provided payload.
@@ -20,14 +18,12 @@ const convertToPdf = promisify((libreoffice as any).convert);
  * @returns A Promise resolving to the generated document as a Buffer.
  */
 export async function generateEUDocument(documentType: string, payload: TemplatePayload, outputFormat: OutputFormat): Promise<Buffer> {
-  // 1. Validate template type
-  const templateConfig = TEMPLATE_CONFIGS.find(config => config.id === documentType);
-  if (!templateConfig) {
-    throw new Error(`Unsupported document type: ${documentType}.`);
+  // 1. Validate template type using the simple array
+  if (!SUPPORTED_TEMPLATES.includes(documentType)) {
+    throw new Error(`Unsupported document type: ${documentType}. Supported types are: ${SUPPORTED_TEMPLATES.join(', ')}`);
   }
 
   // 2. Resolve template path
-  // We assume a folder structure like: backend/storage/templates/EuLatePaymentDemand.docx
   const templatePath = path.resolve(__dirname, '../../storage/templates', `${documentType}.docx`);
 
   // 3. Read base template
@@ -53,17 +49,6 @@ export async function generateEUDocument(documentType: string, payload: Template
     doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
-      // You can add more options here, e.g., for strict rendering or custom delimiters
-      // For example, to handle missing variables gracefully:
-      //  nullGetter: function(part) {
-      //    if (!part.module) {
-      //      return "undefined";
-      //    }
-      //    if (part.module === "rawxml") {
-      //      return "";
-      //    }
-      //    return "";
-      //  },
     });
   } catch (error) {
     console.error(`[TemplateEngine] Failed to initialize Docxtemplater for ${documentType}`, error);
@@ -74,7 +59,6 @@ export async function generateEUDocument(documentType: string, payload: Template
   try {
     doc.render(payload);
   } catch (error: any) {
-    // Distinguish between rendering errors and other errors
     if (error.properties && error.properties.errors && error.properties.errors.length > 0) {
       const firstError = error.properties.errors[0];
       console.error(`[TemplateEngine] Docxtemplater rendering error: ${firstError.message}`, firstError);
@@ -99,13 +83,37 @@ export async function generateEUDocument(documentType: string, payload: Template
   // 7. Convert to PDF if requested
   if (outputFormat === 'pdf') {
     try {
-      // Ensure LibreOffice is installed and accessible in the environment
-      // This conversion can be resource-intensive and might require a dedicated service
-      const pdfBuffer = await convertToPdf(outputBuffer, '.pdf', undefined); // undefined for default filters
-      return pdfBuffer;
-    } catch (error) {
-      console.error(`[TemplateEngine] Error converting DOCX to PDF for ${documentType}`, error);
-      throw new Error('Failed to convert document to PDF. Ensure LibreOffice is installed and accessible on the server path.');
+      // Default to port 3001 or whatever the user configures, to avoid hitting the Express server itself on 3000
+      const gotenbergUrl = process.env.GOTENBERG_URL || 'http://localhost:3001';
+
+      const form = new FormData();
+      form.append('files', outputBuffer, {
+        filename: `${documentType}.docx`,
+        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      console.log(`[TemplateEngine] Sending request to Gotenberg at ${gotenbergUrl}/forms/libreoffice/convert`);
+
+      const response = await axios.post(`${gotenbergUrl}/forms/libreoffice/convert`, form, {
+        headers: form.getHeaders(),
+        responseType: 'arraybuffer', // Expecting PDF buffer
+        timeout: 15000 // 15 second timeout
+      });
+
+      return Buffer.from(response.data);
+    } catch (error: any) {
+      console.error(`[TemplateEngine] Error converting DOCX to PDF via Gotenberg`, error.message);
+
+      let errorMessage = 'Failed to convert document to PDF. ';
+      if (error.code === 'ECONNREFUSED') {
+         errorMessage += `Could not connect to Gotenberg service at ${process.env.GOTENBERG_URL || 'http://localhost:3001'}. Is the Docker container running?`;
+      } else if (error.response && error.response.status === 404) {
+         errorMessage += `Gotenberg service returned 404. Ensure you are not pointing GOTENBERG_URL to the Express backend itself.`;
+      } else {
+         errorMessage += error.message;
+      }
+
+      throw new Error(errorMessage);
     }
   }
 

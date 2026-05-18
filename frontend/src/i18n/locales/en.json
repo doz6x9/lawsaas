@@ -176,10 +176,6 @@
         "alertTime": {
           "label": "Alert Time",
           "placeholder": "e.g. 08:00"
-        },
-        "partnerEmail": {
-          "label": "Partner Email for Alerts",
-          "placeholder": "partner@lawfirm.com"
         }
       }
     },

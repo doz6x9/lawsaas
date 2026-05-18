@@ -1,23 +1,14 @@
 import express from 'express';
 import { generateEUDocument } from '../services/templateEngine';
-import { TEMPLATE_CONFIGS, TemplatePayload, OutputFormat } from '../types/templates';
+// Only import what is actually exported from types/templates.ts
+import { TemplatePayload, OutputFormat, SUPPORTED_TEMPLATES } from '../types/templates';
+import { getSupabaseClient } from '../utils/supabaseClient';
 
 export const documentRoutes = express.Router();
 
 /**
  * POST /api/documents/generate
  * Generates an EU-specific legal document from a base template.
- *
- * Expected Body:
- * {
- *   "documentType": "EuLatePaymentDemand",
- *   "payload": {
- *      "CreditorName": "...",
- *      "DebtorName": "...",
- *      ...
- *   },
- *   "outputFormat": "docx" | "pdf"
- * }
  */
 documentRoutes.post('/generate', async (req, res) => {
   try {
@@ -32,29 +23,35 @@ documentRoutes.post('/generate', async (req, res) => {
       return res.status(400).json({ error: 'payload is required and must be a JSON object.' });
     }
 
-    const validOutputFormat: OutputFormat = outputFormat === 'pdf' ? 'pdf' : 'docx';
-
-    const templateConfig = TEMPLATE_CONFIGS.find(config => config.id === documentType);
-    if (!templateConfig) {
+    if (!SUPPORTED_TEMPLATES.includes(documentType)) {
       return res.status(400).json({
         error: `Unsupported document type: ${documentType}.`,
-        supportedTypes: TEMPLATE_CONFIGS.map(c => c.id)
+        supportedTypes: SUPPORTED_TEMPLATES
       });
     }
 
-    // Basic payload validation against the schema (can be expanded with a validation library)
-    for (const field of templateConfig.fields) {
-      if (field.required && (payload[field.id] === undefined || payload[field.id] === null || payload[field.id] === '')) {
-        return res.status(400).json({ error: `Missing required field: ${field.label} (${field.id})` });
-      }
-    }
+    const validOutputFormat: OutputFormat = outputFormat === 'pdf' ? 'pdf' : 'docx';
 
     console.log(`[DocumentRoutes] Generating document type: ${documentType} as ${validOutputFormat}`);
 
     // 2. Generate Document
     const documentBuffer = await generateEUDocument(documentType, payload as TemplatePayload, validOutputFormat);
 
-    // 3. Send Response
+    // 3. Audit Log the Action
+    const client = getSupabaseClient();
+    if (client) {
+       await client.from('AuditLogs').insert({
+         action: 'DOCUMENT_GENERATED',
+         resourceId: documentType,
+         details: {
+           format: validOutputFormat,
+           // Do not log sensitive PII payload, just metadata
+           timestamp: new Date().toISOString()
+         }
+       });
+    }
+
+    // 4. Send Response
     const fileExtension = validOutputFormat === 'pdf' ? 'pdf' : 'docx';
     const contentType = validOutputFormat === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     const filename = `${documentType}_Generated_${Date.now()}.${fileExtension}`;

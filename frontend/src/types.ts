@@ -23,7 +23,7 @@ export interface ProcessedFile {
 export interface DirectoryContact {
   idInfringer: string;
   company: string;
-  phone: string;
+  phones: string[]; // Updated to an array of strings
   caseCount: number;
   clientNames: string;
 }

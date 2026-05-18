@@ -190,20 +190,42 @@ intakeRouter.post('/submit', async (req, res) => {
 
     if (existingContact) {
       idInfringer = existingContact.idInfringer;
-      // Optional: Update phone number if it changed
+
+      // Update phone number if it changed by inserting into ContactPhones
+      const { error: insertPhoneError } = await client
+        .from('ContactPhones')
+        .insert({
+          idInfringer,
+          phoneNumber: payload.phone,
+          isPrimary: false
+        });
+
+      if (insertPhoneError) {
+          console.warn(`Failed to insert additional phone for contact: ${insertPhoneError.message}`);
+      }
     } else {
       idInfringer = uuidv4();
       const { error: insertContactError } = await client
         .from('Contacts')
         .insert({
           idInfringer,
-          company: payload.company,
-          phone: payload.phone,
-          phone1: payload.phone
+          company: payload.company
         });
 
       if (insertContactError) {
         throw new Error(`Failed to insert new contact: ${insertContactError.message}`);
+      }
+
+      const { error: insertPhoneError } = await client
+        .from('ContactPhones')
+        .insert({
+          idInfringer,
+          phoneNumber: payload.phone,
+          isPrimary: true
+        });
+
+      if (insertPhoneError) {
+        throw new Error(`Failed to insert new contact phone: ${insertPhoneError.message}`);
       }
     }
 
