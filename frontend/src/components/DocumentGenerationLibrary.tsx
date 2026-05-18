@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TEMPLATE_CONFIGS } from '../config/documentTemplates';
-import { TemplateForm } from './TemplateForm'; // Import TemplateForm
-import { FileText, Globe, Search, CheckCircle2, ChevronRight, LayoutGrid, Clock, ShieldAlert, Calendar } from 'lucide-react';
+import { TemplateForm } from './TemplateForm';
+import { FileText, Globe, Search, CheckCircle2, ChevronRight, Clock, ShieldAlert } from 'lucide-react';
 
 export const DocumentGenerationLibrary: React.FC = () => {
   const { t } = useTranslation();

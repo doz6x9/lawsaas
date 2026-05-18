@@ -28,12 +28,12 @@ LegalAct is a comprehensive LegalTech Software-as-a-Service platform designed to
 
 ### 5. Conflict of Interest Search
 - **Full-Text Search:** A powerful search tool (`/conflict`) to scan across all recorded cases, client names, company names, and phone numbers.
-- **Malpractice Prevention:** Helps identify potential conflicts of interest before onboarding new clients.
+- **Malpractice Prevention:** Helps identify potential conflicts of interest with fuzzy matching.
 - **Structured Results:** Returns a clear report detailing which Case IDs the search term appeared in and the type of match (e.g., "Client Name", "Infringer Company").
 
 ### 6. Határidő-számító (Procedural Deadline Calculator)
 - **Hungarian Law Compliance:** Calculates exact procedural deadlines based on Hungarian Civil Procedure Code (Pp.) rules.
-- **Working Days Logic:** Automatically skips weekends and predefined Hungarian national holidays (static and dynamic).
+- **Working Days Logic:** Automatically skips weekends and dynamically fetched Hungarian national holidays.
 - **Intuitive UI:** Provides a clean interface to input a start date and duration, displaying the final deadline in a clear, localized format.
 
 ### 7. Automated Tools Library
@@ -50,7 +50,7 @@ LegalAct is a comprehensive LegalTech Software-as-a-Service platform designed to
 ## Tech Stack
 
 -   **Frontend:** React, TypeScript, Tailwind CSS (Microsoft Fluent Design System), `react-i18next`, `framer-motion`, `JSZip`.
--   **Backend:** Node.js, Express.js, TypeScript, `axios`, `docxtemplater`, `pizzip`, `libreoffice-convert`, `fs-extra`, `node-cron`, `multer`, `uuid`.
+-   **Backend:** Node.js, Express.js, TypeScript, `axios`, `docxtemplater`, `pizzip`, `form-data`, `fs-extra`, `node-cron`, `multer`, `uuid`.
 -   **Database:** Supabase (PostgreSQL & Storage).
 
 ## Setup & Running the Application
@@ -59,7 +59,7 @@ LegalAct is a comprehensive LegalTech Software-as-a-Service platform designed to
 - Node.js (v18 or higher)
 - npm (v8 or higher)
 - A Supabase project (URL and Service Role Key required)
-- LibreOffice installed on your backend server (for DOCX to PDF conversion)
+- **Docker** (for running the Gotenberg PDF conversion service locally)
 
 ### 1. Backend Setup
 ```bash
@@ -71,20 +71,21 @@ Create a `.env` file in the `backend` directory:
 PORT=3000
 SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
 SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
-# For cron job testing (if email functionality is re-enabled)
-# SMTP_HOST=...
-# SMTP_PORT=...
-# SMTP_USER=...
-# SMTP_PASS=...
-# SMTP_SECURE=...
+# Gotenberg URL for PDF conversion (if running locally via Docker)
+GOTENBERG_URL=http://localhost:3001
 ```
 Apply the schema from `backend/supabase_schema.sql` to your Supabase project.
-Create a folder `backend/storage/templates` and place your `.docx` template files there (e.g., `EuLatePaymentDemand.docx`).
+Create a folder `backend/storage/templates` and place your base `.docx` template files (e.g., `EuLatePaymentDemand.docx`) in this folder.
 
 To run the backend:
 ```bash
 npm run dev
 ```
+**For PDF Conversion:** If you need PDF generation locally, you must run the Gotenberg Docker container:
+```bash
+docker run --rm -p 3001:3000 gotenberg/gotenberg:8
+```
+Ensure `GOTENBERG_URL` in your `.env` matches the port you expose (e.g., `http://localhost:3001`).
 
 ### 2. Frontend Setup
 ```bash
@@ -105,5 +106,21 @@ Access the application in your browser at `http://localhost:5173`.
 - `/terms`: Terms of Service
 - `/contact`: Contact Us
 - `/dashboard`: Internal Dashboard (accessible via login from Landing Page)
+
+## Deployment
+
+### Frontend Deployment (Vercel)
+1.  **Connect your GitHub repository** to Vercel.
+2.  **Set the Root Directory** to `frontend`.
+3.  Vercel will automatically detect Vite and configure the build.
+4.  Ensure `vercel.json` is present in the `frontend` root to handle client-side routing.
+
+### Backend Deployment (Persistent Server - e.g., Render, Railway)
+**Important:** Your backend uses `node-cron` for scheduled tasks (GDPR scrubbing, deadline alerts). Vercel Serverless Functions are NOT suitable for these long-running background jobs. Deploy your backend to a persistent server.
+1.  Connect your GitHub repository to your chosen provider (Render, Railway, etc.).
+2.  Set the Root Directory to `backend`.
+3.  Configure build and start commands (`npm install`, `npm start`).
+4.  **Crucially, configure all environment variables** (Supabase keys, `GOTENBERG_URL` if Gotenberg is hosted separately) in your hosting provider's settings.
+5.  Update your frontend's API calls to point to your live backend URL.
 
 ---

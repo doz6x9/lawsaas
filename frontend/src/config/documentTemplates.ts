@@ -1,4 +1,5 @@
 export type FieldType = 'text' | 'number' | 'date' | 'boolean' | 'array' | 'select';
+export type OutputFormat = 'docx' | 'pdf';
 
 export interface TemplateField {
   id: string;

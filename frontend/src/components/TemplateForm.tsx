@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+//import { useTranslation } from 'react-i18next';
 import { TEMPLATE_CONFIGS, TemplateField, OutputFormat } from '../config/documentTemplates';
-import { Loader2, FileText, FileType, AlertCircle, CheckCircle2, RefreshCcw, ArrowLeft } from 'lucide-react';
+import { Loader2, FileText, FileType, AlertCircle, CheckCircle2, RefreshCcw, ArrowLeft, X, Plus } from 'lucide-react';
 
 interface TemplateFormProps {
   templateId: string;
@@ -9,7 +9,7 @@ interface TemplateFormProps {
 }
 
 export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel }) => {
-  const { t } = useTranslation();
+  //const { t } = useTranslation();
   const templateConfig = TEMPLATE_CONFIGS.find((config) => config.id === templateId);
 
   const [formData, setFormData] = useState<Record<string, any>>({});

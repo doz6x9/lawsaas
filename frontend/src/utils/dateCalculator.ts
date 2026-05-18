@@ -33,15 +33,6 @@ export function clearHolidayCache() {
 }
 
 /**
- * Helper function to format a Date object to MM-DD string
- */
-function getMonthDayString(date: Date): string {
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${month}-${day}`;
-}
-
-/**
  * Helper function to format a Date object to YYYY-MM-DD string
  */
 function getFullDateString(date: Date): string {

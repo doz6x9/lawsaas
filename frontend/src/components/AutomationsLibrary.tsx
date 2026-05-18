@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { automatedTools } from '../config/automatedTools';
 import { ToolConfigurator } from './ToolConfigurator';
-import { Search, Settings, FileText, Globe, CheckCircle2, ChevronRight, LayoutGrid, Clock } from 'lucide-react';
+import { Search, Settings, FileText, Globe, ChevronRight, LayoutGrid, Clock } from 'lucide-react';
 
 export const AutomationsLibrary: React.FC = () => {
   const { t } = useTranslation();
