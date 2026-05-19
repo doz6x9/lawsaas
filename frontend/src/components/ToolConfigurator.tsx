@@ -18,9 +18,9 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
 
   if (!tool) {
     return (
-      <div className="p-6 bg-[#FDE7E9] border border-[#FDE7E9] rounded-sm flex items-start">
-        <AlertCircle className="h-5 w-5 text-[#A80000] mr-3 shrink-0" />
-        <p className="text-sm text-[#A80000]">{t('automations.toolNotFound')}</p>
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg flex items-start">
+        <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
+        <p className="text-sm text-red-800">{t('automations.toolNotFound')}</p>
       </div>
     );
   }
@@ -71,36 +71,32 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden flex flex-col max-w-3xl mx-auto">
-      {/* Header */}
+    <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden flex flex-col max-w-3xl mx-auto">
       <div className="px-6 py-5 border-b border-gray-200 bg-white">
         <h2 className="text-xl font-semibold text-gray-900">{t(tool.titleKey)}</h2>
         <p className="mt-1 text-sm text-gray-600">{t(tool.descriptionKey)}</p>
       </div>
 
       <div className="p-6 flex-1 overflow-y-auto">
-        {/* Error Alert */}
         {status === 'error' && (
-          <div className="mb-6 p-4 bg-[#FDE7E9] border border-[#FDE7E9] rounded-sm flex items-start">
-            <AlertCircle className="h-5 w-5 text-[#A80000] mr-3 shrink-0" />
-            <p className="text-sm font-semibold text-[#A80000]">{errorMessage}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
+            <p className="text-sm font-semibold text-red-800">{errorMessage}</p>
           </div>
         )}
 
-        {/* Success Alert */}
         {status === 'success' && (
-          <div className="mb-6 p-4 bg-[#DFF6DD] border border-[#DFF6DD] rounded-sm flex items-center">
-            <CheckCircle2 className="h-5 w-5 text-[#107C10] mr-3 shrink-0" />
-            <p className="text-sm font-semibold text-[#107C10]">{t('automations.successMessage')}</p>
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
+            <CheckCircle2 className="h-5 w-5 text-green-600 mr-3 shrink-0" />
+            <p className="text-sm font-semibold text-green-800">{t('automations.successMessage')}</p>
           </div>
         )}
 
-        {/* Integrations Status */}
         <div className="mb-8">
           <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">{t('automations.activeIntegrations')}</h3>
           <div className="space-y-2">
             {tool.integrations.map((integration) => (
-              <div key={integration} className="flex items-center text-sm text-gray-700 bg-[#F3F2F1] px-3 py-2 rounded-sm border border-gray-200">
+              <div key={integration} className="flex items-center text-sm text-gray-700 bg-gray-100 px-3 py-2 rounded-md border border-gray-200">
                 <CheckCircle2 className="h-4 w-4 text-green-600 mr-2 shrink-0" />
                 <span>{t('automations.connectedTo')} <span className="font-semibold">{integration}</span></span>
               </div>
@@ -108,7 +104,6 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
           </div>
         </div>
 
-        {/* Dynamic Form */}
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">{t('automations.configuration')}</h3>
           <div className="space-y-5">
@@ -124,7 +119,7 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
                     value={formData[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
                     disabled={status === 'saving' || status === 'success'}
-                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 border focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm rounded-sm bg-white"
+                    className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 border focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm rounded-md bg-white"
                   >
                     <option value="" disabled>{t('automations.selectDefault')}</option>
                     {field.options?.map((opt) => (
@@ -139,7 +134,7 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
                     value={formData[field.id] || ''}
                     onChange={(e) => handleInputChange(field.id, e.target.value)}
                     disabled={status === 'saving' || status === 'success'}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm"
                   />
                 )}
               </div>
@@ -148,19 +143,18 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-6 py-4 bg-[#F3F2F1] border-t border-gray-200 flex items-center justify-end space-x-3 shrink-0">
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end space-x-3 shrink-0">
         <button
           onClick={onCancel}
           disabled={status === 'saving' || status === 'success'}
-          className="px-4 py-2 border border-transparent text-sm font-semibold rounded-sm text-gray-700 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+          className="px-4 py-2 border border-gray-300 text-sm font-semibold rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors"
         >
           {t('automations.cancel')}
         </button>
         <button
           onClick={handleSave}
           disabled={status === 'saving' || status === 'success'}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-sm shadow-sm text-white bg-[#0078D4] hover:bg-[#005A9E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] disabled:opacity-50 transition-colors"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-50 transition-colors"
         >
           {status === 'saving' && <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />}
           {t('automations.saveAndTurnOn')}

@@ -3,9 +3,7 @@ import path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import axios from 'axios';
-import FormData from 'form-data';
 
-// Note: TEMPLATE_CONFIGS was moved to the frontend. We validate using SUPPORTED_TEMPLATES.
 import { SUPPORTED_TEMPLATES, TemplatePayload, OutputFormat } from '../types/templates';
 
 /**
@@ -18,7 +16,7 @@ import { SUPPORTED_TEMPLATES, TemplatePayload, OutputFormat } from '../types/tem
  * @returns A Promise resolving to the generated document as a Buffer.
  */
 export async function generateEUDocument(documentType: string, payload: TemplatePayload, outputFormat: OutputFormat): Promise<Buffer> {
-  // 1. Validate template type using the simple array
+  // 1. Validate template type
   if (!SUPPORTED_TEMPLATES.includes(documentType)) {
     throw new Error(`Unsupported document type: ${documentType}. Supported types are: ${SUPPORTED_TEMPLATES.join(', ')}`);
   }
@@ -80,40 +78,34 @@ export async function generateEUDocument(documentType: string, payload: Template
     throw new Error('Failed to generate the final DOCX document buffer.');
   }
 
-  // 7. Convert to PDF if requested
+  // 7. Convert to PDF if requested using ConvertAPI
   if (outputFormat === 'pdf') {
+    const convertApiKey = process.env.CONVERTAPI_SECRET;
+    if (!convertApiKey) {
+      throw new Error('PDF conversion is not available. CONVERTAPI_SECRET is missing from .env file.');
+    }
+
     try {
-      // Default to port 3001 or whatever the user configures, to avoid hitting the Express server itself on 3000
-      const gotenbergUrl = process.env.GOTENBERG_URL || 'http://localhost:3001';
+      console.log(`[TemplateEngine] Converting to PDF using ConvertAPI...`);
+      const convertapi = require('convertapi')(convertApiKey);
+      const params = convertapi.createParams();
+      params.add('File', outputBuffer, `${documentType}.docx`);
 
-      const form = new FormData();
-      form.append('files', outputBuffer, {
-        filename: `${documentType}.docx`,
-        contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      });
+      const result = await convertapi.convert('docx', 'pdf', params);
 
-      console.log(`[TemplateEngine] Sending request to Gotenberg at ${gotenbergUrl}/forms/libreoffice/convert`);
-
-      const response = await axios.post(`${gotenbergUrl}/forms/libreoffice/convert`, form, {
-        headers: form.getHeaders(),
-        responseType: 'arraybuffer', // Expecting PDF buffer
-        timeout: 15000 // 15 second timeout
-      });
-
-      return Buffer.from(response.data);
-    } catch (error: any) {
-      console.error(`[TemplateEngine] Error converting DOCX to PDF via Gotenberg`, error.message);
-
-      let errorMessage = 'Failed to convert document to PDF. ';
-      if (error.code === 'ECONNREFUSED') {
-         errorMessage += `Could not connect to Gotenberg service at ${process.env.GOTENBERG_URL || 'http://localhost:3001'}. Is the Docker container running?`;
-      } else if (error.response && error.response.status === 404) {
-         errorMessage += `Gotenberg service returned 404. Ensure you are not pointing GOTENBERG_URL to the Express backend itself.`;
-      } else {
-         errorMessage += error.message;
+      // Get the first file from the result
+      const resultFile = result.files[0];
+      if (!resultFile || !resultFile.url) {
+        throw new Error('ConvertAPI did not return a valid file.');
       }
 
-      throw new Error(errorMessage);
+      // ConvertAPI returns a URL to the converted file, we need to download it
+      const pdfResponse = await axios.get(resultFile.url, { responseType: 'arraybuffer' });
+      return Buffer.from(pdfResponse.data);
+
+    } catch (error: any) {
+      console.error(`[TemplateEngine] Error converting DOCX to PDF via ConvertAPI`, error.response?.data || error.message);
+      throw new Error('Failed to convert document to PDF via ConvertAPI.');
     }
   }
 

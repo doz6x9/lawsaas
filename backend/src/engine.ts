@@ -50,7 +50,7 @@ export interface ConflictSearchResult {
 // Lazy initialization of Supabase client to ensure process.env is loaded
 let supabase: SupabaseClient | null = null;
 
-export function getSupabaseClient() {
+function getSupabaseClient() {
   if (supabase) return supabase;
 
   const supabaseUrl = process.env.SUPABASE_URL || '';
@@ -176,10 +176,11 @@ export async function searchConflicts(query: string): Promise<ConflictSearchResu
     );
 
     // Audit Log the Search Action
-    await client.from('AuditLogs').insert({
+    const { error: auditError } = await client.from('AuditLogs').insert({
       action: 'CONFLICT_SEARCH_PERFORMED',
       details: { query: rawQuery, resultsFound: uniqueResults.length, timestamp: new Date().toISOString() }
-    }).catch(e => console.error("Failed to write audit log:", e));
+    });
+    if (auditError) console.error("Failed to write audit log:", auditError);
 
     return uniqueResults;
 
@@ -380,14 +381,15 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
     }
 
     // Audit Log the Import Action
-    await client.from('AuditLogs').insert({
+    const { error: auditError } = await client.from('AuditLogs').insert({
       action: 'BATCH_DATA_IMPORTED',
       details: {
         contactsImported: contactsToUpsert.size,
         casesImported: casesToUpsert.size,
         timestamp: new Date().toISOString()
       }
-    }).catch(e => console.error("Failed to write audit log:", e));
+    });
+    if (auditError) console.error("Failed to write audit log:", auditError);
 
     console.log(`Successfully imported ${contactsToUpsert.size} contacts and ${casesToUpsert.size} cases.`);
   } catch (err) {
@@ -763,4 +765,5 @@ export async function redactDocument(docxBuffer: Buffer, targets: string[]): Pro
   return updatedBuffer;
 }
 
-export { getSupabaseClient };
+// Removed duplicate export
+// export { getSupabaseClient };

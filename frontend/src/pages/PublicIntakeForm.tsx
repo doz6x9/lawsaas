@@ -16,7 +16,7 @@ export const PublicIntakeForm: React.FC = () => {
     customerName: '',
     company: '',
     phone: '',
-    imageUrls: [''] // Start with one empty input
+    imageUrls: ['']
   });
 
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
@@ -38,7 +38,7 @@ export const PublicIntakeForm: React.FC = () => {
 
   const removeUrlField = (index: number) => {
     const newUrls = formData.imageUrls.filter((_, i) => i !== index);
-    if (newUrls.length === 0) newUrls.push(''); // Always keep at least one
+    if (newUrls.length === 0) newUrls.push('');
     setFormData(prev => ({ ...prev, imageUrls: newUrls }));
   };
 
@@ -99,9 +99,9 @@ export const PublicIntakeForm: React.FC = () => {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen bg-[#F3F2F1] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-10 px-4 shadow-sm sm:rounded-md sm:px-10 border border-gray-200 text-center">
+          <div className="bg-white py-10 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-green-600 mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('intakeForm.successTitle')}</h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -115,32 +115,32 @@ export const PublicIntakeForm: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3F2F1] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-xl">
         <div className="flex justify-center items-center mb-6">
-          <div className="bg-[#0078D4] p-2 rounded-sm shadow-sm">
+          <div className="bg-blue-600 p-3 rounded-lg shadow-lg">
             <Briefcase className="h-6 w-6 text-white" />
           </div>
-          <h1 className="ml-3 text-2xl font-semibold text-gray-900 tracking-tight">{t('intakeForm.title')} <span className="font-normal text-gray-500">{t('intakeForm.subtitle')}</span></h1>
+          <h1 className="ml-4 text-3xl font-bold text-gray-900 tracking-tight">{t('intakeForm.title')}</h1>
         </div>
-        <p className="text-center text-sm text-gray-600 mb-8 max-w-md mx-auto">
+        <p className="text-center text-md text-gray-600 mb-8 max-w-md mx-auto">
           {t('intakeForm.instructions')}
         </p>
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white py-8 px-4 shadow-sm sm:rounded-md sm:px-10 border border-gray-200">
-          <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200">
+          <form className="space-y-6" onSubmit={handleSubmit}>
 
             {status === 'error' && (
-              <div className="rounded-sm bg-[#FDE7E9] p-3 border border-[#FDE7E9]">
+              <div className="rounded-lg bg-red-50 p-4 border border-red-200">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <AlertCircle className="h-4 w-4 text-[#A80000]" aria-hidden="true" />
+                    <AlertCircle className="h-5 w-5 text-red-600" aria-hidden="true" />
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-semibold text-[#A80000]">{t('intakeForm.errorTitle')}</h3>
-                    <div className="mt-1 text-xs text-[#A80000]">
+                    <h3 className="text-sm font-semibold text-red-800">{t('intakeForm.errorTitle')}</h3>
+                    <div className="mt-1 text-sm text-red-700">
                       <p>{errorMessage}</p>
                     </div>
                   </div>
@@ -150,7 +150,7 @@ export const PublicIntakeForm: React.FC = () => {
 
             <div>
               <label htmlFor="customerName" className="block text-sm font-semibold text-gray-900">
-                {t('intakeForm.customerName')} <span className="text-[#A80000]">*</span>
+                {t('intakeForm.customerName')} <span className="text-red-600">*</span>
               </label>
               <div className="mt-1.5">
                 <input
@@ -160,16 +160,16 @@ export const PublicIntakeForm: React.FC = () => {
                   required
                   value={formData.customerName}
                   onChange={(e) => handleInputChange('customerName', e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm transition-colors"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm transition-colors"
                   disabled={status === 'submitting'}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-y-5 gap-x-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="company" className="block text-sm font-semibold text-gray-900">
-                  {t('intakeForm.company')} <span className="text-[#A80000]">*</span>
+                  {t('intakeForm.company')} <span className="text-red-600">*</span>
                 </label>
                 <div className="mt-1.5">
                   <input
@@ -179,7 +179,7 @@ export const PublicIntakeForm: React.FC = () => {
                     required
                     value={formData.company}
                     onChange={(e) => handleInputChange('company', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm transition-colors"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm transition-colors"
                     disabled={status === 'submitting'}
                   />
                 </div>
@@ -187,7 +187,7 @@ export const PublicIntakeForm: React.FC = () => {
 
               <div>
                 <label htmlFor="phone" className="block text-sm font-semibold text-gray-900">
-                  {t('intakeForm.phone')} <span className="text-[#A80000]">*</span>
+                  {t('intakeForm.phone')} <span className="text-red-600">*</span>
                 </label>
                 <div className="mt-1.5">
                   <input
@@ -197,7 +197,7 @@ export const PublicIntakeForm: React.FC = () => {
                     required
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm transition-colors"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm transition-colors"
                     placeholder="+36 30 123 4567"
                     disabled={status === 'submitting'}
                   />
@@ -208,22 +208,22 @@ export const PublicIntakeForm: React.FC = () => {
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-semibold text-gray-900">
-                  {t('intakeForm.evidenceLinks')} <span className="text-[#A80000]">*</span>
+                  {t('intakeForm.evidenceLinks')} <span className="text-red-600">*</span>
                 </label>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {formData.imageUrls.map((url, index) => (
                   <div key={index} className="flex shadow-sm">
-                    <span className="inline-flex items-center px-3 rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                      <LinkIcon className="h-4 w-4" />
+                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                      <LinkIcon className="h-5 w-5" />
                     </span>
                     <input
                       type="url"
                       required={index === 0}
                       value={url}
                       onChange={(e) => handleUrlChange(index, e.target.value)}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-sm focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm border-gray-300 border transition-colors"
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md focus:ring-2 focus:ring-blue-600 sm:text-sm border-gray-300 border transition-colors"
                       placeholder="https://picrights.com/evidence/..."
                       disabled={status === 'submitting'}
                     />
@@ -232,7 +232,7 @@ export const PublicIntakeForm: React.FC = () => {
                         type="button"
                         onClick={() => removeUrlField(index)}
                         disabled={status === 'submitting'}
-                        className="ml-2 inline-flex items-center p-1.5 border border-transparent rounded-sm text-gray-400 hover:bg-gray-100 hover:text-[#A80000] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#A80000] transition-colors"
+                        className="ml-2 inline-flex items-center p-2 border border-transparent rounded-md text-gray-400 hover:bg-gray-100 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-600 transition-colors"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -245,9 +245,9 @@ export const PublicIntakeForm: React.FC = () => {
                 type="button"
                 onClick={addUrlField}
                 disabled={status === 'submitting'}
-                className="mt-3 inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-semibold rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#0078D4] transition-colors"
+                className="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-semibold rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-600 transition-colors"
               >
-                <Plus className="h-3 w-3 mr-1 text-gray-500" />
+                <Plus className="h-4 w-4 mr-2 text-gray-500" />
                 {t('intakeForm.addLink')}
               </button>
             </div>
@@ -256,11 +256,11 @@ export const PublicIntakeForm: React.FC = () => {
               <button
                 type="submit"
                 disabled={status === 'submitting'}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-sm shadow-sm text-sm font-semibold text-white bg-[#0078D4] hover:bg-[#005A9E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] disabled:opacity-70 transition-colors"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-70 transition-colors"
               >
                 {status === 'submitting' ? (
                   <>
-                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
+                    <Loader2 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                     {t('intakeForm.submitting')}
                   </>
                 ) : (

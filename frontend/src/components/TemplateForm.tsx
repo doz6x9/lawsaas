@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-//import { useTranslation } from 'react-i18next';
 import { TEMPLATE_CONFIGS, TemplateField, OutputFormat } from '../config/documentTemplates';
 import { Loader2, FileText, FileType, AlertCircle, CheckCircle2, RefreshCcw, ArrowLeft, X, Plus } from 'lucide-react';
 
@@ -9,7 +8,6 @@ interface TemplateFormProps {
 }
 
 export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel }) => {
-  //const { t } = useTranslation();
   const templateConfig = TEMPLATE_CONFIGS.find((config) => config.id === templateId);
 
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -21,7 +19,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
       const initialData: Record<string, any> = {};
       templateConfig.fields.forEach(field => {
         if (field.type === 'array') {
-          initialData[field.id] = ['']; // Start with one empty string for array types
+          initialData[field.id] = [''];
         } else if (field.type === 'boolean') {
           initialData[field.id] = false;
         } else {
@@ -40,9 +38,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
 
   if (!templateConfig) {
     return (
-      <div className="p-6 bg-[#FDE7E9] border border-[#FDE7E9] rounded-sm flex items-start">
-        <AlertCircle className="h-5 w-5 text-[#A80000] mr-3 shrink-0" />
-        <p className="text-sm text-[#A80000]">Template configuration not found.</p>
+      <div className="p-6 bg-red-50 border border-red-200 rounded-lg flex items-start">
+        <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
+        <p className="text-sm text-red-800">Template configuration not found.</p>
       </div>
     );
   }
@@ -76,7 +74,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
     const newArray = currentArray.filter((_: any, i: number) => i !== index);
     setFormData((prev) => ({
       ...prev,
-      [fieldId]: newArray.length > 0 ? newArray : [''], // Ensure at least one field remains
+      [fieldId]: newArray.length > 0 ? newArray : [''],
     }));
   };
 
@@ -84,7 +82,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
     setStatus('generating');
     setErrorMessage('');
 
-    // Basic validation
     for (const field of templateConfig.fields) {
       if (field.required) {
         if (field.type === 'array') {
@@ -103,12 +100,6 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
     }
 
     try {
-      console.log('Sending document generation request with payload:', {
-        documentType: templateId,
-        payload: formData,
-        outputFormat: outputFormat,
-      });
-
       const response = await fetch('http://localhost:3000/api/documents/generate', {
         method: 'POST',
         headers: {
@@ -121,18 +112,13 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
         }),
       });
 
-      console.log('Received response from backend:', response);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('Backend error response:', errorData);
         throw new Error(errorData.error || 'Document generation failed.');
       }
 
       const blob = await response.blob();
       const filename = response.headers.get('Content-Disposition')?.split('filename="')[1]?.slice(0, -1) || `${templateId}.${outputFormat}`;
-
-      console.log('Generated blob and filename:', blob, filename);
 
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -144,9 +130,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
       document.body.removeChild(a);
 
       setStatus('success');
-      // Removed automatic unmounting here to allow the user to choose their next action
     } catch (err) {
-      console.error('Frontend caught error during generation:', err);
       setStatus('error');
       setErrorMessage(err instanceof Error ? err.message : 'An unknown error occurred during document generation.');
     }
@@ -155,7 +139,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   const renderField = (field: TemplateField) => {
     const commonProps = {
       id: field.id,
-      className: 'block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm',
+      className: 'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm',
       disabled: status === 'generating',
       required: field.required,
     };
@@ -180,7 +164,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
               type="checkbox"
               checked={formData[field.id] || false}
               onChange={(e) => handleInputChange(field.id, e.target.checked)}
-              className="h-4 w-4 text-[#0078D4] border-gray-300 rounded-sm focus:ring-[#0078D4]"
+              className="h-4 w-4 text-blue-600 border-gray-300 rounded-sm focus:ring-blue-600"
               disabled={status === 'generating'}
             />
             <span>{field.label}</span>
@@ -210,16 +194,16 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
                   value={item}
                   onChange={(e) => handleArrayInputChange(field.id, index, e.target.value)}
                   placeholder={field.placeholder}
-                  className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] sm:text-sm"
+                  className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600 sm:text-sm"
                   disabled={status === 'generating'}
-                  required={field.required && index === 0} // Only first item required if array is required
+                  required={field.required && index === 0}
                 />
                 {currentArray.length > 1 && (
                   <button
                     type="button"
                     onClick={() => removeArrayField(field.id, index)}
                     disabled={status === 'generating'}
-                    className="p-1.5 text-gray-400 hover:text-[#A80000] rounded-sm hover:bg-gray-100 transition-colors"
+                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-md hover:bg-gray-100 transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -230,7 +214,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
               type="button"
               onClick={() => addArrayField(field.id)}
               disabled={status === 'generating'}
-              className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-semibold rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#0078D4] transition-colors"
+              className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-semibold rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-600 transition-colors"
             >
               <Plus className="h-3 w-3 mr-1 text-gray-500" /> Add Item
             </button>
@@ -243,9 +227,9 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
 
   if (status === 'success') {
     return (
-      <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden flex flex-col max-w-4xl mx-auto py-12 px-6 text-center">
-        <div className="mx-auto w-16 h-16 bg-[#DFF6DD] rounded-full flex items-center justify-center mb-6">
-          <CheckCircle2 className="h-8 w-8 text-[#107C10]" />
+      <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden flex flex-col max-w-4xl mx-auto py-12 px-6 text-center">
+        <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-6">
+          <CheckCircle2 className="h-8 w-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-semibold text-gray-900 mb-2">Document Generated Successfully!</h2>
         <p className="text-gray-600 mb-10 max-w-md mx-auto">
@@ -255,14 +239,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
           <button
             onClick={initializeForm}
-            className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-sm shadow-sm text-white bg-[#0078D4] hover:bg-[#005A9E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] transition-colors w-full sm:w-auto"
+            className="inline-flex items-center justify-center px-6 py-2.5 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors w-full sm:w-auto"
           >
             <RefreshCcw className="w-4 h-4 mr-2" />
             Generate Another {templateConfig.title}
           </button>
           <button
             onClick={onCancel}
-            className="inline-flex items-center justify-center px-6 py-2.5 border border-gray-300 text-sm font-semibold rounded-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] transition-colors w-full sm:w-auto shadow-sm"
+            className="inline-flex items-center justify-center px-6 py-2.5 border border-gray-300 text-sm font-semibold rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors w-full sm:w-auto shadow-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Return to Library
@@ -273,28 +257,25 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden flex flex-col max-w-4xl mx-auto">
-      {/* Header */}
+    <div className="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden flex flex-col max-w-4xl mx-auto">
       <div className="px-6 py-5 border-b border-gray-200 bg-white">
         <h2 className="text-xl font-semibold text-gray-900">{templateConfig.title}</h2>
         <p className="mt-1 text-sm text-gray-600">{templateConfig.description}</p>
       </div>
 
       <div className="p-6 flex-1 overflow-y-auto">
-        {/* Error Alert */}
         {status === 'error' && (
-          <div className="mb-6 p-4 bg-[#FDE7E9] border border-[#FDE7E9] rounded-sm flex items-start">
-            <AlertCircle className="h-5 w-5 text-[#A80000] mr-3 shrink-0" />
-            <p className="text-sm font-semibold text-[#A80000]">{errorMessage}</p>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-600 mr-3 shrink-0" />
+            <p className="text-sm font-semibold text-red-800">{errorMessage}</p>
           </div>
         )}
 
-        {/* Dynamic Form */}
         <div className="space-y-5">
           {templateConfig.fields.map((field) => (
             <div key={field.id}>
               <label htmlFor={field.id} className="block text-sm font-semibold text-gray-900 mb-1.5">
-                {field.label} {field.required && <span className="text-[#A80000]">*</span>}
+                {field.label} {field.required && <span className="text-red-600">*</span>}
               </label>
               {renderField(field)}
             </div>
@@ -302,19 +283,18 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-6 py-4 bg-[#F3F2F1] border-t border-gray-200 flex items-center justify-end space-x-3 shrink-0">
+      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-end space-y-2 sm:space-y-0 sm:space-x-3 shrink-0">
         <button
           onClick={onCancel}
           disabled={status === 'generating'}
-          className="px-4 py-2 border border-transparent text-sm font-semibold rounded-sm text-gray-700 bg-transparent hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+          className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-sm font-semibold rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-colors"
         >
           Cancel
         </button>
         <button
           onClick={() => generateDocument('docx')}
           disabled={status === 'generating'}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-sm shadow-sm text-white bg-[#0078D4] hover:bg-[#005A9E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] disabled:opacity-50 transition-colors"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-50 transition-colors"
         >
           {status === 'generating' && <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />}
           Generate DOCX <FileText className="w-4 h-4 ml-2" />
@@ -322,7 +302,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
         <button
           onClick={() => generateDocument('pdf')}
           disabled={status === 'generating'}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-sm shadow-sm text-white bg-[#A80000] hover:bg-[#7F0000] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A80000] disabled:opacity-50 transition-colors"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600 disabled:opacity-50 transition-colors"
         >
           {status === 'generating' && <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />}
           Generate PDF <FileType className="w-4 h-4 ml-2" />

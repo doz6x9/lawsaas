@@ -120,7 +120,7 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
 
   if (redactionDone) {
     return (
-      <div className="mt-4 bg-[#F3F2F1] border border-gray-200 rounded-md p-4 flex items-center justify-between shadow-sm">
+      <div className="mt-4 bg-gray-100 border border-gray-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center">
           <CheckCircle2 className="h-5 w-5 text-green-600 mr-3" />
           <span className="text-sm font-semibold text-gray-900">{t('redaction.success')}</span>
@@ -130,24 +130,23 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
   }
 
   return (
-    <div className="mt-6 bg-white border border-gray-200 rounded-md shadow-sm overflow-hidden">
-      <div className="p-3 bg-[#F3F2F1] border-b border-gray-200 flex items-center">
-        <Shield className="h-4 w-4 text-gray-600 mr-2" />
-        <h4 className="text-sm font-semibold text-gray-900">{t('redaction.title')}</h4>
+    <div className="mt-6 bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
+      <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center">
+        <Shield className="h-5 w-5 text-gray-600 mr-3" />
+        <h4 className="text-md font-semibold text-gray-900">{t('redaction.title')}</h4>
       </div>
 
       <div className="p-4 space-y-5">
-        <p className="text-xs text-gray-600">
+        <p className="text-sm text-gray-600">
           {t('redaction.subtitle')}
         </p>
 
         {error && (
-          <div className="p-3 bg-[#FDE7E9] text-[#A80000] text-xs font-medium rounded-sm border border-[#FDE7E9]">
+          <div className="p-3 bg-red-50 text-red-800 text-sm font-medium rounded-lg border border-red-200">
             {error}
           </div>
         )}
 
-        {/* Preset Toggles */}
         <div className="flex flex-col gap-3">
           <label className="flex items-center cursor-pointer">
             <div className="relative">
@@ -158,8 +157,8 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
                 onChange={() => setRedactPhones(!redactPhones)}
                 disabled={isRedacting}
               />
-              <div className={`block w-9 h-5 rounded-full transition-colors ${redactPhones ? 'bg-[#0078D4]' : 'bg-gray-300'}`}></div>
-              <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${redactPhones ? 'transform translate-x-4' : ''}`}></div>
+              <div className={`block w-10 h-6 rounded-full transition-colors ${redactPhones ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${redactPhones ? 'transform translate-x-4' : ''}`}></div>
             </div>
             <div className="ml-3 text-sm font-semibold text-gray-700">
               {t('redaction.redactPhones')}
@@ -175,8 +174,8 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
                 onChange={() => setRedactEmails(!redactEmails)}
                 disabled={isRedacting}
               />
-              <div className={`block w-9 h-5 rounded-full transition-colors ${redactEmails ? 'bg-[#0078D4]' : 'bg-gray-300'}`}></div>
-              <div className={`dot absolute left-0.5 top-0.5 bg-white w-4 h-4 rounded-full transition-transform ${redactEmails ? 'transform translate-x-4' : ''}`}></div>
+              <div className={`block w-10 h-6 rounded-full transition-colors ${redactEmails ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${redactEmails ? 'transform translate-x-4' : ''}`}></div>
             </div>
             <div className="ml-3 text-sm font-semibold text-gray-700">
               {t('redaction.redactEmails')}
@@ -184,9 +183,8 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
           </label>
         </div>
 
-        {/* Custom Words */}
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5">{t('redaction.customTextLabel')}</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('redaction.customTextLabel')}</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -194,28 +192,28 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
               onChange={(e) => setCustomWord(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddCustomWord()}
               placeholder={t('redaction.customTextPlaceholder')}
-              className="flex-1 block w-full px-2.5 py-1.5 border border-gray-300 rounded-sm text-sm focus:outline-none focus:ring-1 focus:ring-[#0078D4] focus:border-[#0078D4] disabled:opacity-50"
+              className="flex-1 block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-50"
               disabled={isRedacting}
             />
             <button
               onClick={handleAddCustomWord}
               disabled={!customWord.trim() || isRedacting}
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-semibold rounded-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none disabled:opacity-50"
+              className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-semibold rounded-md text-white bg-gray-700 hover:bg-gray-800 focus:outline-none disabled:opacity-50"
             >
               <Plus className="h-4 w-4" />
             </button>
           </div>
 
           {customWordsList.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
+            <div className="mt-2 flex flex-wrap gap-2">
               {customWordsList.map((word, idx) => (
-                <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-sm text-[11px] font-semibold bg-[#E1DFDD] text-gray-800">
+                <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold bg-gray-200 text-gray-800">
                   {word}
                   <button
                     type="button"
                     onClick={() => handleRemoveCustomWord(word)}
                     disabled={isRedacting}
-                    className="flex-shrink-0 ml-1 h-3 w-3 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none"
+                    className="flex-shrink-0 ml-1.5 h-4 w-4 inline-flex items-center justify-center text-gray-500 hover:text-gray-900 focus:outline-none"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -229,7 +227,7 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
           <button
             onClick={applyRedaction}
             disabled={isRedacting || (!redactPhones && !redactEmails && customWordsList.length === 0)}
-            className="w-full inline-flex justify-center items-center px-4 py-1.5 border border-transparent text-sm font-semibold rounded-sm shadow-sm text-white bg-[#0078D4] hover:bg-[#005A9E] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0078D4] disabled:opacity-50 transition-colors"
+            className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-50 transition-colors"
           >
             {isRedacting ? (
               <>
