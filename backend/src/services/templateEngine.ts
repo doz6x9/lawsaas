@@ -22,7 +22,7 @@ export async function generateEUDocument(documentType: string, payload: Template
   }
 
   // 2. Resolve template path
-  const templatePath = path.resolve(__dirname, '../../storage/templates', `${documentType}.docx`);
+  const templatePath = path.join(process.cwd(), 'storage/templates', `${documentType}.docx`);
 
   // 3. Read base template
   let content: Buffer;
