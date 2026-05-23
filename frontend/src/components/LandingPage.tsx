@@ -1,313 +1,688 @@
 import React from 'react';
-import { Briefcase, ArrowRight, ShieldCheck, FileText, Search, Calendar, CheckCircle, Zap, Users, BarChart3, Lock, Settings, TrendingUp, Award } from 'lucide-react';
+import {
+  Briefcase,
+  ArrowRight,
+  ShieldCheck,
+  FileText,
+  Search,
+  Calendar,
+  CheckCircle,
+  Zap,
+  Users,
+  BarChart3,
+  Lock,
+  Settings,
+  TrendingUp,
+  ClipboardCheck,
+  Database,
+  UploadCloud,
+} from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: () => void;
 }
 
+type IconType = React.ElementType;
+
+interface Feature {
+  icon: IconType;
+  title: string;
+  desc: string;
+  benefit: string;
+}
+
+interface UseCase {
+  icon: IconType;
+  title: string;
+  description: string;
+  href: string;
+}
+
+interface WorkflowStep {
+  step: string;
+  icon: IconType;
+  title: string;
+  desc: string;
+}
+
+interface TrustItem {
+  icon: IconType;
+  title: string;
+  desc: string;
+}
+
+const features: Feature[] = [
+  {
+    icon: FileText,
+    title: 'Automated Document Generation',
+    desc: 'Generate structured legal documents from Excel data and client intake forms without repetitive copy-pasting.',
+    benefit: 'Reduce manual drafting work',
+  },
+  {
+    icon: Search,
+    title: 'Conflict Detection',
+    desc: 'Search your client and case database to identify potential conflicts before accepting new matters.',
+    benefit: 'Catch risks earlier',
+  },
+  {
+    icon: Calendar,
+    title: 'Deadline Management',
+    desc: 'Track important case deadlines and reduce the chance of missing procedural dates.',
+    benefit: 'Stay ahead of due dates',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Secure Client Intake',
+    desc: 'Collect client information through a structured intake portal and store it in one organized workflow.',
+    benefit: 'Simplify client onboarding',
+  },
+];
+
+const useCases: UseCase[] = [
+  {
+    icon: Zap,
+    title: 'IP & Trademark Teams',
+    description:
+      'Generate cease-and-desist letters, organize evidence, and manage enforcement workflows faster.',
+    href: '/use-cases/ip-specialists',
+  },
+  {
+    icon: Users,
+    title: 'Small Law Firms',
+    description:
+      'Centralize client intake, case details, documents, and follow-up tasks without a heavy enterprise system.',
+    href: '/use-cases/small-law-firms',
+  },
+  {
+    icon: BarChart3,
+    title: 'Compliance Teams',
+    description:
+      'Track records, prepare internal documentation, and maintain a clearer audit trail for sensitive workflows.',
+    href: '/use-cases/compliance-teams',
+  },
+];
+
+const workflowSteps: WorkflowStep[] = [
+  {
+    step: '1',
+    icon: UploadCloud,
+    title: 'Upload or Collect Data',
+    desc: 'Import Excel files or collect client details through a secure intake form.',
+  },
+  {
+    step: '2',
+    icon: Settings,
+    title: 'Process Automatically',
+    desc: 'The system organizes information, prepares document data, and highlights possible issues.',
+  },
+  {
+    step: '3',
+    icon: TrendingUp,
+    title: 'Generate & Manage',
+    desc: 'Create documents, review outputs, download files, and manage your workflow from one place.',
+  },
+];
+
+const trustItems: TrustItem[] = [
+  {
+    icon: Lock,
+    title: 'Privacy-Focused',
+    desc: 'Built with secure handling of legal and client information in mind.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'GDPR-Aware',
+    desc: 'Designed to support structured and responsible client data processing.',
+  },
+  {
+    icon: Database,
+    title: 'Organized Database',
+    desc: 'Keep clients, cases, files, and generated documents connected.',
+  },
+  {
+    icon: ClipboardCheck,
+    title: 'Review Before Download',
+    desc: 'Allow users to verify outputs before using or sending documents.',
+  },
+];
+
+const SectionHeading = ({
+  label,
+  title,
+  description,
+}: {
+  label?: string;
+  title: string;
+  description: string;
+}) => (
+  <div className="max-w-3xl mx-auto text-center mb-14">
+    {label && (
+      <p className="text-sm font-semibold text-[#0078D4] uppercase tracking-wide mb-3">
+        {label}
+      </p>
+    )}
+    <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+      {title}
+    </h2>
+    <p className="text-lg text-gray-600 leading-relaxed">{description}</p>
+  </div>
+);
+
+const Logo = () => (
+  <div className="flex items-center gap-3">
+    <div className="w-10 h-10 bg-[#0078D4] rounded-xl flex items-center justify-center shadow-sm">
+      <Briefcase className="w-6 h-6 text-white" />
+    </div>
+    <span className="text-xl font-bold text-gray-900">LegalAct</span>
+  </div>
+);
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
-
-  const features = [
-    {
-      icon: <FileText className="w-6 h-6 text-[#0078D4]" />,
-      title: "Automated Document Generation",
-      desc: "Generate compliant legal documents from Excel data, eliminating manual and error-prone copy-pasting.",
-      benefit: "Saves an average of 40 hours per month"
-    },
-    {
-      icon: <Search className="w-6 h-6 text-[#0078D4]" />,
-      title: "Intelligent Conflict Detection",
-      desc: "Instantly search your entire database to flag potential client conflicts before they become a problem.",
-      benefit: "Identify conflicts in seconds, not hours"
-    },
-    {
-      icon: <Calendar className="w-6 h-6 text-[#0078D4]" />,
-      title: "Statutory Deadline Calculation",
-      desc: "Automatically calculate procedural deadlines, including specific rules for Hungarian public holidays and weekends.",
-      benefit: "Eliminate the risk of missed deadlines"
-    },
-    {
-      icon: <ShieldCheck className="w-6 h-6 text-[#0078D4]" />,
-      title: "Secure Client Intake",
-      desc: "Use our public-facing portals to securely collect client data directly into your GDPR-compliant database.",
-      benefit: "Streamline data entry and ensure compliance"
-    }
-  ];
-
-  const useCases = [
-    {
-      icon: <Zap className="w-5 h-5" />,
-      title: "IP Specialists",
-      description: "Streamline trademark and patent enforcement with automated cease-and-desist letter generation.",
-      href: "/use-cases/ip-specialists"
-    },
-    {
-      icon: <Users className="w-5 h-5" />,
-      title: "Contract Teams",
-      description: "Quickly generate templated agreements, NDAs, and employment contracts from your existing data.",
-      href: "/use-cases/contract-teams"
-    },
-    {
-      icon: <BarChart3 className="w-5 h-5" />,
-      title: "Compliance Officers",
-      description: "Maintain audit logs, track deadlines, and generate GDPR compliance reports automatically.",
-      href: "/use-cases/compliance-officers"
-    }
-  ];
-
-  const stats = [
-    { number: "500+", label: "Active Users" },
-    { number: "50K+", label: "Documents Generated" },
-    { number: "99.9%", label: "Uptime SLA" },
-    { number: "24/7", label: "Support" }
-  ];
-
   return (
-    <div className="min-h-screen bg-[#FAF9F8] text-gray-900 font-sans flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#FAF9F8] text-gray-900 font-sans overflow-x-hidden">
+      <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6 py-4 flex items-center justify-between">
+          <Logo />
 
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#0078D4] rounded-lg flex items-center justify-center">
-              <Briefcase className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">LegalAct</span>
-          </div>
-          <nav className="flex items-center gap-8 text-sm font-medium">
-            <a href="#features" className="text-gray-700 hover:text-[#0078D4] transition-colors hidden sm:block">Features</a>
-            <a href="/use-cases" className="text-gray-700 hover:text-[#0078D4] transition-colors hidden sm:block">Use Cases</a>
-            <a href="/services" className="text-gray-700 hover:text-[#0078D4] transition-colors hidden sm:block">Pricing</a>
-            <a href="/intake" className="text-gray-700 hover:text-[#0078D4] transition-colors">Portal</a>
-            <div className="w-px h-5 bg-gray-300 hidden sm:block"></div>
-            <button onClick={onLogin} className="px-4 py-2 rounded-md bg-[#0078D4] text-white font-semibold hover:bg-[#005A9E] transition-colors shadow-sm">
+          <nav className="flex items-center gap-5 sm:gap-8 text-sm font-medium">
+            <a
+              href="#features"
+              className="text-gray-700 hover:text-[#0078D4] transition-colors hidden md:block"
+            >
+              Features
+            </a>
+            <a
+              href="#workflow"
+              className="text-gray-700 hover:text-[#0078D4] transition-colors hidden md:block"
+            >
+              Workflow
+            </a>
+            <a
+              href="#usecases"
+              className="text-gray-700 hover:text-[#0078D4] transition-colors hidden md:block"
+            >
+              Use Cases
+            </a>
+            <a
+              href="/intake"
+              className="text-gray-700 hover:text-[#0078D4] transition-colors hidden sm:block"
+            >
+              Client Portal
+            </a>
+
+            <button
+              type="button"
+              onClick={onLogin}
+              className="px-4 py-2 rounded-lg bg-[#0078D4] text-white font-semibold hover:bg-[#005A9E] transition-colors shadow-sm"
+            >
               Sign in
             </button>
           </nav>
         </div>
       </header>
 
-      <section className="pt-24 pb-32 px-6 max-w-7xl mx-auto w-full">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div className="text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100/70 border border-blue-200 rounded-full text-sm font-semibold text-[#0078D4] mb-6">
-              <Award className="w-4 h-4" />
-              Enterprise Legal Tech
+      <main>
+        <section className="relative pt-20 sm:pt-24 pb-24 sm:pb-32 px-5 sm:px-6">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-blue-200/30 rounded-full blur-3xl" />
+          </div>
+
+          <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-14 lg:gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-sm font-semibold text-[#0078D4] mb-6">
+                <ShieldCheck className="w-4 h-4" />
+                Legal workflow automation for modern firms
+              </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight tracking-tight mb-6">
+                Spend less time on paperwork and more time on legal work.
+              </h1>
+
+              <p className="text-lg sm:text-xl text-gray-600 mb-9 leading-relaxed max-w-2xl">
+                LegalAct helps law firms automate client intake, document
+                generation, conflict checks, and deadline tracking from one
+                organized workspace.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <button
+                  type="button"
+                  onClick={onLogin}
+                  className="inline-flex items-center justify-center px-7 py-3 text-base font-semibold text-white bg-[#0078D4] hover:bg-[#005A9E] rounded-lg shadow-sm transition-all"
+                >
+                  Get started
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </button>
+
+                <a
+                  href="#features"
+                  className="inline-flex items-center justify-center px-7 py-3 text-base font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  See how it works
+                </a>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">No heavy setup required</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Built for sensitive files</span>
+                </div>
+              </div>
             </div>
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Focus on Law, Not Paperwork
-            </h1>
-            <p className="text-xl text-gray-600 mb-10 leading-relaxed max-w-xl">
-              LegalAct provides an integrated suite of tools to handle document drafting, conflict screening, and deadline management, allowing your firm to operate with greater speed and fewer errors.
+
+            <div className="hidden lg:block">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-3xl opacity-10 blur-3xl" />
+
+                <div className="relative bg-white border border-gray-200 shadow-xl rounded-2xl overflow-hidden">
+                  <div className="h-12 bg-gray-50 border-b border-gray-200 flex items-center px-5 gap-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                    <div className="ml-4 h-6 flex-1 bg-white border border-gray-200 rounded-md" />
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                        <p className="text-sm text-gray-500 mb-1">Cases</p>
+                        <p className="text-2xl font-bold text-gray-900">24</p>
+                      </div>
+                      <div className="p-4 bg-green-50 border border-green-100 rounded-xl">
+                        <p className="text-sm text-gray-500 mb-1">Docs</p>
+                        <p className="text-2xl font-bold text-gray-900">118</p>
+                      </div>
+                      <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
+                        <p className="text-sm text-gray-500 mb-1">Tasks</p>
+                        <p className="text-2xl font-bold text-gray-900">7</p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="font-semibold text-gray-900">
+                          Recent Activity
+                        </p>
+                        <span className="text-xs font-semibold text-[#0078D4] bg-blue-50 px-2 py-1 rounded-full">
+                          Live
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-4 p-3 bg-green-50 rounded-lg border border-green-100">
+                          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <FileText className="w-5 h-5 text-green-700" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              Demand letter generated
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Ready for review
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <Search className="w-5 h-5 text-blue-700" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              Conflict check completed
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              No matching conflict found
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                          <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <Calendar className="w-5 h-5 text-yellow-700" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              Deadline reminder created
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Follow-up due in 5 days
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-10 px-5 sm:px-6 bg-white border-y border-gray-200">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+            <div className="p-5">
+              <p className="text-3xl font-bold text-[#0078D4] mb-2">3+</p>
+              <p className="text-gray-600 font-medium">
+                Core workflows automated
+              </p>
+            </div>
+
+            <div className="p-5">
+              <p className="text-3xl font-bold text-[#0078D4] mb-2">DOCX</p>
+              <p className="text-gray-600 font-medium">
+                Document generation support
+              </p>
+            </div>
+
+            <div className="p-5">
+              <p className="text-3xl font-bold text-[#0078D4] mb-2">Excel</p>
+              <p className="text-gray-600 font-medium">
+                Batch processing friendly
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="features" className="py-24 px-5 sm:px-6 bg-[#F3F2F1]">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              label="Features"
+              title="A practical platform for legal workflow automation"
+              description="Start with the workflows that create the most admin burden: intake, document generation, conflict checks, and deadline tracking."
+            />
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {features.map(feature => {
+                const Icon = feature.icon;
+
+                return (
+                  <div
+                    key={feature.title}
+                    className="group p-7 bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+                  >
+                    <div className="w-14 h-14 bg-blue-50 text-[#0078D4] rounded-xl flex items-center justify-center mb-5">
+                      <Icon className="w-6 h-6" />
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {feature.title}
+                    </h3>
+
+                    <p className="text-gray-600 text-sm mb-5 leading-relaxed">
+                      {feature.desc}
+                    </p>
+
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="text-sm font-semibold text-[#0078D4]">
+                        {feature.benefit}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="py-24 px-5 sm:px-6 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              label="Workflow"
+              title="From raw case data to ready-to-review documents"
+              description="LegalAct is designed to fit into your existing process instead of forcing your firm into a complicated new system."
+            />
+
+            <div className="relative grid md:grid-cols-3 gap-8 lg:gap-12">
+              <div className="absolute top-8 left-0 w-full h-px bg-gray-200 hidden md:block" />
+
+              {workflowSteps.map(item => {
+                const Icon = item.icon;
+
+                return (
+                  <div
+                    key={item.step}
+                    className="relative bg-white text-center p-6 rounded-2xl"
+                  >
+                    <div className="w-16 h-16 mx-auto bg-[#0078D4] text-white rounded-full flex items-center justify-center mb-6 text-2xl font-bold shadow-md relative z-10">
+                      {item.step}
+                    </div>
+
+                    <div className="w-12 h-12 mx-auto bg-blue-50 text-[#0078D4] rounded-xl flex items-center justify-center mb-5">
+                      <Icon className="w-6 h-6" />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-gray-900 mb-3">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-gray-600 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="usecases" className="py-24 px-5 sm:px-6 bg-[#F3F2F1]">
+          <div className="max-w-7xl mx-auto">
+            <SectionHeading
+              label="Use Cases"
+              title="Built for legal teams that want less manual admin"
+              description="Whether you handle IP enforcement, client intake, or compliance documentation, the platform helps reduce repetitive work."
+            />
+
+            <div className="grid md:grid-cols-3 gap-6">
+              {useCases.map(useCase => {
+                const Icon = useCase.icon;
+
+                return (
+                  <a
+                    key={useCase.title}
+                    href={useCase.href}
+                    className="group block p-8 bg-white border border-gray-200 rounded-2xl hover:border-blue-200 transition-all hover:shadow-lg"
+                  >
+                    <div className="w-12 h-12 bg-blue-50 text-[#0078D4] rounded-xl flex items-center justify-center mb-5">
+                      <Icon className="w-6 h-6" />
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-[#0078D4] transition-colors">
+                      {useCase.title}
+                    </h3>
+
+                    <p className="text-gray-600 leading-relaxed mb-5">
+                      {useCase.description}
+                    </p>
+
+                    <span className="inline-flex items-center text-sm font-semibold text-[#0078D4]">
+                      Learn more
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 px-5 sm:px-6 bg-[#0078D4] text-white">
+          <div className="max-w-7xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {trustItems.map(item => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  key={item.title}
+                  className="p-6 rounded-2xl bg-white/10 border border-white/15 text-center"
+                >
+                  <Icon className="w-8 h-8 mx-auto mb-4" />
+                  <p className="font-semibold mb-2">{item.title}</p>
+                  <p className="text-sm text-blue-50 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="py-24 px-5 sm:px-6 bg-white">
+          <div className="max-w-4xl mx-auto text-center">
+            <p className="text-sm font-semibold text-[#0078D4] uppercase tracking-wide mb-3">
+              Get started
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 mb-10">
+
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
+              Start automating your legal paperwork today.
+            </h2>
+
+            <p className="text-lg text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Set up client intake, process case data, and generate documents
+              from one workflow built for legal professionals.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
+                type="button"
                 onClick={onLogin}
-                className="inline-flex items-center justify-center px-7 py-3 border border-transparent text-base font-semibold text-white bg-[#0078D4] hover:bg-[#005A9E] rounded-sm shadow-sm transition-all"
+                className="inline-flex items-center justify-center px-8 py-3 bg-[#0078D4] text-white font-semibold rounded-lg hover:bg-[#005A9E] transition-all shadow-sm"
               >
-                Get Started for Free <ArrowRight className="w-5 h-5 ml-2" />
+                Open dashboard
+                <ArrowRight className="w-5 h-5 ml-2" />
               </button>
+
               <a
-                href="/services"
-                className="inline-flex items-center justify-center px-7 py-3 text-base font-semibold text-[#0078D4] bg-white border border-gray-300 rounded-sm hover:bg-gray-100 transition-colors"
+                href="/contact"
+                className="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-800 font-semibold border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                View Pricing
+                Contact us
               </a>
             </div>
-            <div className="flex items-center gap-8 text-sm text-gray-500">
-              <div className="flex items-center gap-2"><CheckCircle className="w-5 h-5 text-green-500" /><span className="font-semibold">Free 14-day trial</span></div>
-              <div className="flex items-center gap-2"><Lock className="w-5 h-5 text-green-500" /><span className="font-semibold">SOC 2 Certified</span></div>
-            </div>
           </div>
-
-          <div className="hidden lg:block">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full opacity-10 blur-3xl"></div>
-              <div className="relative bg-white border border-gray-200 shadow-lg rounded-lg p-2">
-                <div className="h-10 bg-gray-100 rounded-t-md flex items-center px-4 gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                </div>
-                <div className="p-6 space-y-4 bg-white rounded-b-md">
-                  <div className="flex items-center gap-4 p-3 bg-green-50 rounded-md border border-green-200">
-                    <div className="w-10 h-10 bg-green-100 rounded-md flex items-center justify-center"><FileText className="w-5 h-5 text-green-600" /></div>
-                    <div><p className="font-semibold text-gray-800">Demand_Letter_Q3.docx</p><p className="text-sm text-gray-500">Generated successfully</p></div>
-                  </div>
-                  <div className="flex items-center gap-4 p-3 bg-yellow-50 rounded-md border border-yellow-200">
-                    <div className="w-10 h-10 bg-yellow-100 rounded-md flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-yellow-600" /></div>
-                    <div><p className="font-semibold text-gray-800">Conflict Check</p><p className="text-sm text-gray-500">No conflicts found</p></div>
-                  </div>
-                  <div className="flex items-center gap-4 p-3 bg-blue-50 rounded-md border border-blue-200">
-                    <div className="w-10 h-10 bg-blue-100 rounded-md flex items-center justify-center"><Calendar className="w-5 h-5 text-blue-600" /></div>
-                    <div><p className="font-semibold text-gray-800">Deadline: May 25</p><p className="text-sm text-gray-500">5 days remaining</p></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, idx) => (
-              <div key={idx} className="text-center">
-                <p className="text-4xl font-bold text-[#0078D4] mb-2">{stat.number}</p>
-                <p className="text-gray-500 font-medium">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="features" className="py-24 px-6 bg-[#F3F2F1]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">A Unified Platform for Your Firm</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">Manage cases, documents, and deadlines with a single, integrated solution designed for legal professionals.</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, idx) => (
-              <div key={idx} className="group p-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300">
-                <div className="w-14 h-14 bg-blue-100 rounded-md flex items-center justify-center mb-5">
-                  {feature.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">{feature.desc}</p>
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-sm font-semibold text-[#0078D4]">{feature.benefit}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Streamline Your Workflow in Three Steps</h2>
-            <p className="text-xl text-gray-600">A straightforward process to enhance your firm's efficiency.</p>
-          </div>
-
-          <div className="relative grid md:grid-cols-3 gap-12">
-            <div className="absolute top-8 left-0 w-full h-0.5 bg-gray-200 hidden md:block"></div>
-            {[
-              { step: "1", title: "Upload Your Case Files", desc: "Securely upload client information, case details, and related documents to get started.", icon: <Settings className="w-8 h-8" /> },
-              { step: "2", title: "Automated Analysis", desc: "The system automatically detects conflicts, calculates procedural deadlines, and flags potential risks.", icon: <Zap className="w-8 h-8" /> },
-              { step: "3", title: "Generate Documents & Manage Cases", desc: "Draft legal documents, oversee case progress, and communicate with clients from a centralized dashboard.", icon: <TrendingUp className="w-8 h-8" /> }
-            ].map((item, idx) => (
-              <div key={idx} className="relative bg-white text-center">
-                <div className="w-16 h-16 mx-auto bg-[#0078D4] text-white rounded-full flex items-center justify-center mb-6 text-2xl font-bold shadow-md z-10 relative">
-                  {item.step}
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="usecases" className="py-24 px-6 bg-[#F3F2F1]">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Solutions for Your Specialization</h2>
-            <p className="text-xl text-gray-600">LegalAct is designed to meet the needs of various legal practices.</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {useCases.map((useCase, idx) => (
-              <a key={idx} href={useCase.href} className="block p-8 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-all hover:shadow-lg">
-                <div className="w-12 h-12 bg-blue-100 text-[#0078D4] rounded-md flex items-center justify-center mb-4">
-                  {useCase.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{useCase.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{useCase.description}</p>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 px-6 bg-[#0078D4] text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
-            <div className="flex flex-col items-center"><Lock className="w-8 h-8 mx-auto mb-3" /><p className="font-semibold mb-1">SOC 2 Type II</p><p className="text-sm opacity-90">Certified & Audited</p></div>
-            <div className="flex flex-col items-center"><ShieldCheck className="w-8 h-8 mx-auto mb-3" /><p className="font-semibold mb-1">GDPR Compliant</p><p className="text-sm opacity-90">Data Protection Ready</p></div>
-            <div className="flex flex-col items-center"><Zap className="w-8 h-8 mx-auto mb-3" /><p className="font-semibold mb-1">99.9% Uptime</p><p className="text-sm opacity-90">Enterprise SLA</p></div>
-            <div className="flex flex-col items-center"><Users className="w-8 h-8 mx-auto mb-3" /><p className="font-semibold mb-1">24/7 Support</p><p className="text-sm opacity-90">Expert Team Ready</p></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">Elevate Your Firm's Productivity</h2>
-          <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">Join hundreds of firms that are saving time, reducing errors, and focusing on what matters most: their clients.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={onLogin}
-              className="px-8 py-3 bg-[#0078D4] text-white font-semibold rounded-sm hover:bg-[#005A9E] transition-all shadow-sm"
-            >
-              Start Your Free Trial <ArrowRight className="w-5 h-5 inline ml-2" />
-            </button>
-            <a
-              href="/contact"
-              className="px-8 py-3 bg-white text-[#0078D4] font-semibold border border-gray-300 rounded-sm hover:bg-gray-100 transition-colors"
-            >
-              Schedule a Demo
-            </a>
-          </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
       <footer className="border-t border-gray-200 bg-[#F3F2F1] py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-12 mb-8">
+        <div className="max-w-7xl mx-auto px-5 sm:px-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-10 mb-10">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-[#0078D4] rounded-md flex items-center justify-center"><Briefcase className="w-5 h-5 text-white" /></div>
-                <span className="font-bold text-gray-900">LegalAct</span>
-              </div>
-              <p className="text-sm text-gray-600">Empowering legal firms with intelligent automation.</p>
+              <Logo />
+              <p className="text-sm text-gray-600 mt-4 leading-relaxed">
+                Helping legal teams reduce repetitive admin work through
+                practical automation.
+              </p>
             </div>
+
             <div>
               <p className="font-semibold text-gray-900 mb-4">Product</p>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#features" className="hover:text-[#0078D4] transition-colors">Features</a></li>
-                <li><a href="/services" className="hover:text-[#0078D4] transition-colors">Pricing</a></li>
-                <li><a href="/use-cases" className="hover:text-[#0078D4] transition-colors">Use Cases</a></li>
+                <li>
+                  <a
+                    href="#features"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#workflow"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Workflow
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#usecases"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Use Cases
+                  </a>
+                </li>
               </ul>
             </div>
+
             <div>
               <p className="font-semibold text-gray-900 mb-4">Company</p>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="/contact" className="hover:text-[#0078D4] transition-colors">Contact</a></li>
-                <li><a href="/about" className="hover:text-[#0078D4] transition-colors">About</a></li>
+                <li>
+                  <a
+                    href="/contact"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/about"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    About
+                  </a>
+                </li>
               </ul>
             </div>
+
             <div>
               <p className="font-semibold text-gray-900 mb-4">Legal</p>
               <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="/privacy" className="hover:text-[#0078D4] transition-colors">Privacy Policy</a></li>
-                <li><a href="/terms" className="hover:text-[#0078D4] transition-colors">Terms of Service</a></li>
+                <li>
+                  <a
+                    href="/privacy"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/terms"
+                    className="hover:text-[#0078D4] transition-colors"
+                  >
+                    Terms of Service
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
+
           <div className="border-t border-gray-300 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-600">&copy; {new Date().getFullYear()} LegalAct Inc. All rights reserved.</p>
+            <p className="text-sm text-gray-600">
+              &copy; {new Date().getFullYear()} LegalAct. All rights reserved.
+            </p>
+
             <div className="flex gap-6 text-sm text-gray-600">
-              <a href="#" className="hover:text-[#0078D4] transition-colors">Twitter</a>
-              <a href="#" className="hover:text-[#0078D4] transition-colors">LinkedIn</a>
-              <a href="#" className="hover:text-[#0078D4] transition-colors">GitHub</a>
+              <a
+                href="/privacy"
+                className="hover:text-[#0078D4] transition-colors"
+              >
+                Privacy
+              </a>
+              <a
+                href="/terms"
+                className="hover:text-[#0078D4] transition-colors"
+              >
+                Terms
+              </a>
+              <a
+                href="/contact"
+                className="hover:text-[#0078D4] transition-colors"
+              >
+                Support
+              </a>
             </div>
           </div>
         </div>
       </footer>
-
     </div>
   );
 };

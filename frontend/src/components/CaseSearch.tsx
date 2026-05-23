@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Papa from 'papaparse';
+import Papa, { ParseError, ParseResult } from 'papaparse';
 import { useTranslation } from 'react-i18next';
 import { Search, Download, AlertCircle, Eye, Menu, X } from 'lucide-react';
 
@@ -40,13 +40,13 @@ const CaseSearch: React.FC = () => {
         }
         const csvText = await response.text();
 
-        const results = await new Promise<Papa.ParseResult<RawCsvRow>>((resolve, reject) => {
-          Papa.parse(csvText, {
+        const results = await new Promise<ParseResult<RawCsvRow>>((resolve, reject) => {
+          Papa.parse<RawCsvRow>(csvText, {
             header: true,
             skipEmptyLines: true,
             transformHeader: (h: string) => h.trim(), // Remove whitespace from headers
-            complete: (res) => resolve(res),
-            error: (err) => reject(err),
+            complete: (res: ParseResult<RawCsvRow>) => resolve(res),
+            error: (err: Error) => reject(err), // Changed ParseError to Error
           });
         });
 

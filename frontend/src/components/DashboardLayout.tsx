@@ -14,11 +14,12 @@ import {
   ChevronDown,
   Database,
   Menu,
-  X
+  X,
+  Eraser
 } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
-export type TabType = 'batch' | 'contacts' | 'conflict' | 'deadline' | 'settings' | 'home' | 'caseSearch';
+export type TabType = 'batch' | 'contacts' | 'conflict' | 'deadline' | 'settings' | 'home' | 'caseSearch' | 'redaction';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -65,6 +66,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
             >
               <FileText className={`w-5 h-5 mr-3 shrink-0 ${activeTab === 'batch' ? 'text-[#0078D4]' : 'text-gray-600'}`} />
               {t('navigation.batchProcessing')}
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => onTabChange('redaction')}
+              className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
+                activeTab === 'redaction'
+                  ? 'bg-white font-semibold border-l-4 border-[#0078D4] text-gray-900'
+                  : 'text-gray-700 hover:bg-gray-200 font-normal border-l-4 border-transparent'
+              }`}
+            >
+              <Eraser className={`w-5 h-5 mr-3 shrink-0 ${activeTab === 'redaction' ? 'text-[#0078D4]' : 'text-gray-600'}`} />
+              Automated Redaction
             </button>
           </li>
           <li>
@@ -157,7 +171,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => onTabChange('home')}>
             <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
               <Grip className="w-5 h-5 text-white" />
             </div>
@@ -225,7 +239,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
           </div>
         )}
 
-        <main className="flex-1 flex flex-col overflow-hidden bg-[#FAF9F8]">
+        <main className="flex-1 flex flex-col overflow-y-auto bg-[#FAF9F8]">
           {children}
         </main>
       </div>

@@ -18,6 +18,7 @@ export interface ProcessedFile {
   filename: string;
   mimeType: string;
   base64Content: string;
+  url: string; // Added missing url property
 }
 
 export interface DirectoryContact {

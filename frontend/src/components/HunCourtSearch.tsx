@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Search, ChevronDown, AlertCircle, Loader, Menu, X } from 'lucide-react';
 import {
   HunCourtCase,
-  SearchOptions,
   searchHuncourtCases,
   fetchAvailableYears
 } from '../utils/huncourtSearch';

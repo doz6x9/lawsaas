@@ -275,12 +275,15 @@ export async function getContactsDirectory(): Promise<DirectoryContact[]> {
  * Imports the aggregated cases into the Supabase database.
  * Upserts contacts, contact phones, and inserts cases.
  */
-async function importCasesToDatabase(cases: AggregatedCase[]) {
+async function importCasesToDatabase(cases: AggregatedCase[], userId?: string) {
   const client = getSupabaseClient();
   if (!client) {
     console.warn('Supabase credentials missing. Skipping database import.');
     return;
   }
+
+  // Use provided userId or generate a default one for testing
+  const effectiveUserId = userId || uuidv4();
 
   const contactsToUpsert = new Map<string, any>();
   const phonesToUpsert: any[] = [];
@@ -294,14 +297,16 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
     if (aggCase.contactData) {
       contactsToUpsert.set(contactUuid, {
         idInfringer: contactUuid,
-        company: aggCase.contactData.company,
+        company: aggCase.contactData.company || 'Unknown Company',
+        user_id: effectiveUserId,
       });
 
       if (aggCase.contactData.phone1) {
         phonesToUpsert.push({
           idInfringer: contactUuid,
           phoneNumber: aggCase.contactData.phone1,
-          isPrimary: true
+          isPrimary: true,
+          user_id: effectiveUserId,
         });
       }
     }
@@ -310,16 +315,22 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
       casesToUpsert.set(caseUuid, {
         idCase: caseUuid,
         pass: aggCase.caseData.pass,
-        customerName: aggCase.caseData.customerName,
+        customerName: aggCase.caseData.customerName || 'Unknown Customer',
         idClient: aggCase.caseData.idClient,
-        idInfringer: contactUuid
+        idInfringer: contactUuid,
+        user_id: effectiveUserId,
       });
 
       for (const url of aggCase.imageUrls) {
-        imagesToInsert.push({
-          idCase: caseUuid,
-          catalogImagePath: url
-        });
+        // Safely convert URL to string in case it's an object from Excel
+        const urlString = typeof url === 'string' ? url : String(url);
+        if (urlString && urlString.trim()) {
+          imagesToInsert.push({
+            idCase: caseUuid,
+            catalogImagePath: urlString.trim(),
+            user_id: effectiveUserId,
+          });
+        }
       }
     }
   }
@@ -399,13 +410,20 @@ async function importCasesToDatabase(cases: AggregatedCase[]) {
 }
 
 /**
- * Fetches an image from a given URL and returns it as an ArrayBuffer.
+ * Fetches an image from a URL and returns an ArrayBuffer
  */
-async function fetchImageBuffer(url: string): Promise<ArrayBuffer> {
+async function fetchImageBuffer(url: string | URL): Promise<ArrayBuffer> {
     try {
-        const response = await fetch(url);
+        // Safely convert URL to string
+        const urlString = typeof url === 'string' ? url : String(url);
+
+        if (!urlString || !urlString.trim() || urlString === '[object Object]') {
+            throw new Error('Invalid or empty URL');
+        }
+
+        const response = await fetch(urlString);
         if (!response.ok) {
-            throw new Error(`Failed to fetch image from ${url}: ${response.statusText}`);
+            throw new Error(`Failed to fetch image from ${urlString}: ${response.statusText}`);
         }
         return await response.arrayBuffer();
     } catch (error) {
@@ -455,14 +473,25 @@ export async function parseAndAggregateCases(excelBuffer: Buffer): Promise<Aggre
     const imagesMap = new Map<string, string[]>();
     const imagesHeaders = getHeaderMap(imagesSheet.getRow(1));
 
-    for (let i = 2; i <= imagesSheet.rowCount; i++) {
-      const row = imagesSheet.getRow(i);
-      const idCase = row.getCell(imagesHeaders['ID Case'])?.value?.toString() || '';
-      const pathUrl = row.getCell(imagesHeaders['Catalog Image Path'])?.value?.toString() || '';
-      if (!idCase || !pathUrl) continue;
-      if (!imagesMap.has(idCase)) imagesMap.set(idCase, []);
-      imagesMap.get(idCase)!.push(pathUrl);
-    }
+     for (let i = 2; i <= imagesSheet.rowCount; i++) {
+       const row = imagesSheet.getRow(i);
+       const idCase = row.getCell(imagesHeaders['ID Case'])?.value?.toString() || '';
+       let pathUrl = row.getCell(imagesHeaders['Catalog Image Path'])?.value;
+
+       // Handle case where Excel cell returns an object instead of string
+       if (typeof pathUrl === 'object' && pathUrl !== null) {
+         pathUrl = String(pathUrl);
+       } else if (pathUrl) {
+         pathUrl = pathUrl.toString();
+       } else {
+         pathUrl = '';
+       }
+
+       pathUrl = pathUrl.trim();
+       if (!idCase || !pathUrl) continue;
+       if (!imagesMap.has(idCase)) imagesMap.set(idCase, []);
+       imagesMap.get(idCase)!.push(pathUrl);
+     }
 
     const casesHeaders = getHeaderMap(casesSheet.getRow(1));
     const aggregatedCases: AggregatedCase[] = [];
@@ -503,30 +532,40 @@ export async function parseAndAggregateCases(excelBuffer: Buffer): Promise<Aggre
       const colPhone = headers['Phone 1'] || headers['phone1'];
       const colImages = headers['Image URLs (Comma Separated)'] || headers['imageUrls'];
 
-      for (let i = 2; i <= aggSheet.rowCount; i++) {
-        const row = aggSheet.getRow(i);
-        const idCase = row.getCell(colIdCase)?.value?.toString() || '';
-        if (!idCase) continue;
+       for (let i = 2; i <= aggSheet.rowCount; i++) {
+         const row = aggSheet.getRow(i);
+         const idCase = row.getCell(colIdCase)?.value?.toString() || '';
+         if (!idCase) continue;
 
-        const rawImages = row.getCell(colImages)?.value?.toString() || '';
-        const imageUrls = rawImages ? rawImages.split(',').map(u => u.trim()).filter(u => u.length > 0) : [];
+         let rawImagesValue = row.getCell(colImages)?.value;
+         // Handle case where Excel cell returns an object instead of string
+         if (typeof rawImagesValue === 'object' && rawImagesValue !== null) {
+           rawImagesValue = String(rawImagesValue);
+         } else if (rawImagesValue) {
+           rawImagesValue = rawImagesValue.toString();
+         } else {
+           rawImagesValue = '';
+         }
 
-        aggregatedCases.push({
-          caseData: {
-            idCase,
-            pass: colPass ? row.getCell(colPass)?.value?.toString() || '' : '',
-            customerName: colCust ? row.getCell(colCust)?.value?.toString() || '' : '',
-            idClient: colClient ? row.getCell(colClient)?.value?.toString() || '' : '',
-            idInfringer: colInfringer ? row.getCell(colInfringer)?.value?.toString() || '' : '',
-          },
-          contactData: {
-            idInfringer: colInfringer ? row.getCell(colInfringer)?.value?.toString() || '' : '',
-            company: colCompany ? row.getCell(colCompany)?.value?.toString() || '' : '',
-            phone1: colPhone ? row.getCell(colPhone)?.value?.toString() || '' : '',
-          },
-          imageUrls,
-        });
-      }
+         const rawImages = rawImagesValue || '';
+         const imageUrls = rawImages ? rawImages.split(',').map(u => u.trim()).filter(u => u.length > 0) : [];
+
+         aggregatedCases.push({
+           caseData: {
+             idCase,
+             pass: colPass ? row.getCell(colPass)?.value?.toString() || '' : '',
+             customerName: colCust ? row.getCell(colCust)?.value?.toString() || '' : '',
+             idClient: colClient ? row.getCell(colClient)?.value?.toString() || '' : '',
+             idInfringer: colInfringer ? row.getCell(colInfringer)?.value?.toString() || '' : '',
+           },
+           contactData: {
+             idInfringer: colInfringer ? row.getCell(colInfringer)?.value?.toString() || '' : '',
+             company: colCompany ? row.getCell(colCompany)?.value?.toString() || '' : '',
+             phone1: colPhone ? row.getCell(colPhone)?.value?.toString() || '' : '',
+           },
+           imageUrls,
+         });
+       }
       if (aggregatedCases.length > 0) return aggregatedCases;
     }
   }
@@ -693,11 +732,11 @@ async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile
  * Main entry point. Parses the input and generates output files based on requested format.
  * Returns an array of ProcessedFile suitable for JSON serialization.
  */
-export async function processLegalBatch(excelBuffer: Buffer, format: OutputFormat = 'both', importContacts: boolean = false): Promise<ProcessedFile[]> {
+export async function processLegalBatch(excelBuffer: Buffer, format: OutputFormat = 'both', importContacts: boolean = false, userId?: string): Promise<ProcessedFile[]> {
   const aggregatedCases = await parseAndAggregateCases(excelBuffer);
 
   if (importContacts) {
-    await importCasesToDatabase(aggregatedCases);
+    await importCasesToDatabase(aggregatedCases, userId);
   }
 
   const results: ProcessedFile[] = [];

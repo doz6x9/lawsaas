@@ -11,6 +11,7 @@ import { automationsRouter } from './api/automations';
 import { automationRoutes } from './routes/automationRoutes';
 import { documentRoutes } from './routes/documentRoutes';
 import { initializeCronWorker } from './services/cronWorker';
+import JSZip from 'jszip';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -105,13 +106,11 @@ app.post('/api/upload', upload.fields([
 });
 
 /**
- * Endpoint to redact sensitive information from a DOCX file.
+ * Endpoint to redact sensitive information from multiple DOCX files.
  */
-app.post('/api/redact-document', upload.fields([
-  { name: 'document', maxCount: 1 }
-]), async (req, res, next) => {
+app.post('/api/redact-documents', upload.array('documents'), async (req, res, next) => {
   try {
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const files = req.files as Express.Multer.File[];
     let targets: string[] = [];
 
     if (req.body.targets) {
@@ -122,17 +121,21 @@ app.post('/api/redact-document', upload.fields([
       }
     }
 
-    if (!files || !files.document || files.document.length === 0) {
-      return res.status(400).json({ error: 'Document file is required.' });
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'Document files are required.' });
     }
 
-    const docFile = files.document[0];
+    const zip = new JSZip();
+    for (const docFile of files) {
+      const redactedBuffer = await redactDocument(docFile.buffer, targets);
+      zip.file(`redacted_${docFile.originalname}`, redactedBuffer);
+    }
 
-    const redactedBuffer = await redactDocument(docFile.buffer, targets);
+    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
 
-    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    res.set('Content-Disposition', `attachment; filename=redacted_${docFile.originalname}`);
-    res.send(redactedBuffer);
+    res.set('Content-Type', 'application/zip');
+    res.set('Content-Disposition', 'attachment; filename=redacted_documents.zip');
+    res.send(zipBuffer);
 
   } catch (error) {
     console.error('Redaction error:', error);

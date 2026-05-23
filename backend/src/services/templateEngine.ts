@@ -104,8 +104,9 @@ export async function generateEUDocument(documentType: string, payload: Template
       return Buffer.from(pdfResponse.data);
 
     } catch (error: any) {
-      console.error(`[TemplateEngine] Error converting DOCX to PDF via ConvertAPI`, error.response?.data || error.message);
-      throw new Error('Failed to convert document to PDF via ConvertAPI.');
+      const detailedError = error.response?.data ? JSON.stringify(error.response.data) : error.message;
+      console.error(`[TemplateEngine] Error converting DOCX to PDF via ConvertAPI`, detailedError);
+      throw new Error(`Failed to convert document to PDF via ConvertAPI: ${detailedError}`);
     }
   }
 

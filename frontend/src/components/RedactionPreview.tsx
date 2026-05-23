@@ -76,6 +76,7 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
 
     try {
       const updatedFiles = [...files];
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
       for (let i = 0; i < updatedFiles.length; i++) {
         const file = updatedFiles[i];
@@ -86,7 +87,7 @@ export const RedactionPreview: React.FC<RedactionPreviewProps> = ({ files, onRed
           formData.append('document', blob, file.filename);
           formData.append('targets', JSON.stringify(targets));
 
-          const response = await fetch('http://localhost:3000/api/redact-document', {
+          const response = await fetch(`${apiUrl}/api/redact-document`, {
             method: 'POST',
             body: formData
           });

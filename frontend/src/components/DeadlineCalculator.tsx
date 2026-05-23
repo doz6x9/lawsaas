@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Calendar, AlertCircle, Clock, ArrowRight, Loader2, Plus, X, Bell } from 'lucide-react';
+import { AlertCircle, Clock, ArrowRight, Loader2, Plus, X, Bell } from 'lucide-react';
 import { calculateLegalDeadline } from '../utils/dateCalculator';
 
 interface DeadlineReminder {

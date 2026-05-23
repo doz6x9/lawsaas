@@ -9,6 +9,7 @@ import { ConflictSearch } from './components/ConflictSearch';
 import CaseSearch from './components/CaseSearch';
 import { DeadlineCalculator } from './components/DeadlineCalculator';
 import { RedactionPreview } from './components/RedactionPreview';
+import { AutomatedRedaction } from './components/AutomatedRedaction';
 import { LandingPage } from './components/LandingPage';
 import ServiceConfigurator from './components/ServiceConfigurator';
 import HunCourtSearch from './components/HunCourtSearch';
@@ -222,27 +223,6 @@ const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 flex-1 overflow-hidden">
               <div className="xl:col-span-2 overflow-y-auto pr-4">
                 <div className="space-y-6">
-                  <ProcessingStatus
-                    state={processState}
-                    steps={steps}
-                    error={errorMsg}
-                    processedFiles={processedFiles}
-                    selectedFileNames={selectedFileNames}
-                    onToggleSelection={toggleSelection}
-                    onToggleSelectAll={toggleSelectAll}
-                    onDownloadSelected={handleDownloadSelected}
-                    onDownloadSingle={handleDownloadSingle}
-                  />
-                  {(processState === 'readyToDownload' || processState === 'success') && processedFiles.length > 0 && (
-                    <RedactionPreview
-                      files={processedFiles}
-                      onRedactionComplete={handleRedactionComplete}
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="xl:col-span-1 overflow-y-auto pr-4">
-                <div className="space-y-6">
                   <FileDropZone
                     fileState={fileState}
                     setFileState={setFileState}
@@ -279,9 +259,32 @@ const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
                   )}
                 </div>
               </div>
+              <div className="xl:col-span-1 overflow-y-auto pr-4">
+                <div className="space-y-6">
+                  <ProcessingStatus
+                    state={processState}
+                    steps={steps}
+                    error={errorMsg}
+                    processedFiles={processedFiles}
+                    selectedFileNames={selectedFileNames}
+                    onToggleSelection={toggleSelection}
+                    onToggleSelectAll={toggleSelectAll}
+                    onDownloadSelected={handleDownloadSelected}
+                    onDownloadSingle={handleDownloadSingle}
+                  />
+                  {(processState === 'readyToDownload' || processState === 'success') && processedFiles.length > 0 && (
+                    <RedactionPreview
+                      files={processedFiles}
+                      onRedactionComplete={handleRedactionComplete}
+                    />
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         );
+      case 'redaction':
+        return <AutomatedRedaction />;
       case 'contacts':
         return <div className={commonPadding}><ContactsDirectory /></div>;
       case 'conflict':
@@ -322,11 +325,6 @@ export const App: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  const navigate = (path: string) => {
-    window.history.pushState({}, '', path);
-    setRoute(path);
-  };
 
   if (route === '/intake') {
     return <PublicIntakeForm />;
