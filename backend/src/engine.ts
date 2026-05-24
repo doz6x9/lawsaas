@@ -414,8 +414,8 @@ async function importCasesToDatabase(cases: AggregatedCase[], userId?: string) {
  */
 async function fetchImageBuffer(url: string | URL): Promise<ArrayBuffer> {
     try {
-        // Safely convert URL to string
         const urlString = typeof url === 'string' ? url : String(url);
+        console.log(`[fetchImageBuffer] Attempting to fetch image from: ${urlString}`);
 
         if (!urlString || !urlString.trim() || urlString === '[object Object]') {
             throw new Error('Invalid or empty URL');
@@ -423,10 +423,14 @@ async function fetchImageBuffer(url: string | URL): Promise<ArrayBuffer> {
 
         const response = await fetch(urlString);
         if (!response.ok) {
-            throw new Error(`Failed to fetch image from ${urlString}: ${response.statusText}`);
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch image from ${urlString}: ${response.status} ${response.statusText} - ${errorText}`);
         }
-        return await response.arrayBuffer();
+        const buffer = await response.arrayBuffer();
+        console.log(`[fetchImageBuffer] Successfully fetched image from: ${urlString}, size: ${buffer.byteLength} bytes`);
+        return buffer;
     } catch (error) {
+        console.error(`[fetchImageBuffer] Error fetching evidence image: ${error instanceof Error ? error.message : String(error)}`);
         throw new Error(`Error fetching evidence image: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
@@ -616,10 +620,12 @@ async function generateAggregatedExcelFile(cases: AggregatedCase[]): Promise<Pro
  * Generates individual Word documents and returns them as an array of ProcessedFile.
  */
 async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile[]> {
+  console.log(`[generateWordFiles] Starting generation for ${cases.length} cases.`);
   const files: ProcessedFile[] = [];
 
   for (const aggCase of cases) {
     const { caseData, contactData, imageUrls } = aggCase;
+    console.log(`[generateWordFiles] Processing case: ${caseData.idCase}`);
 
     const docChildren: any[] = [
       new Paragraph({
@@ -663,6 +669,7 @@ async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile
 
     if (imageUrls.length > 0) {
       for (const url of imageUrls) {
+        console.log(`[generateWordFiles] Attempting to embed image for case ${caseData.idCase} from URL: ${url}`);
         try {
           const imageBuffer = await fetchImageBuffer(url);
           docChildren.push(
@@ -679,8 +686,9 @@ async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile
             }),
             new Paragraph({ text: '' })
           );
+          console.log(`[generateWordFiles] Successfully embedded image from URL: ${url}`);
         } catch (err) {
-          console.error(`Error fetching image for Case ${caseData.idCase} from URL ${url}:`, err);
+          console.error(`[generateWordFiles] Error embedding image for Case ${caseData.idCase} from URL ${url}:`, err);
           docChildren.push(
             new Paragraph({
               children: [
@@ -691,6 +699,7 @@ async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile
         }
       }
     } else {
+      console.log(`[generateWordFiles] No image URLs found for case: ${caseData.idCase}`);
       docChildren.push(
         new Paragraph({
           children: [
@@ -715,16 +724,24 @@ async function generateWordFiles(cases: AggregatedCase[]): Promise<ProcessedFile
       sections: [{ properties: {}, children: docChildren }],
     });
 
-    const buffer = await Packer.toBuffer(doc);
-    const safeName = caseData.idCase.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    console.log(`[generateWordFiles] Document object created for case: ${caseData.idCase}. Attempting to pack to buffer.`);
+    try {
+      const buffer = await Packer.toBuffer(doc);
+      const safeName = caseData.idCase.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-    files.push({
-      filename: `legal_report_case_${safeName}.docx`,
-      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      base64Content: buffer.toString('base64'),
-    });
+      files.push({
+        filename: `legal_report_case_${safeName}.docx`,
+        mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        base64Content: buffer.toString('base64'),
+      });
+      console.log(`[generateWordFiles] Successfully packed and added DOCX for case: ${caseData.idCase}`);
+    } catch (packerError) {
+      console.error(`[generateWordFiles] Error packing DOCX for case ${caseData.idCase}:`, packerError);
+      throw new Error(`Failed to generate DOCX for case ${caseData.idCase}: ${packerError instanceof Error ? packerError.message : String(packerError)}`);
+    }
   }
 
+  console.log(`[generateWordFiles] Finished generation for all cases. Total files: ${files.length}`);
   return files;
 }
 

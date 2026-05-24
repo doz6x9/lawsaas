@@ -156,4 +156,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: err.message || 'Internal Server Error' });
 });
 
+// For local development, listen on a port
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(port, () => {
+    console.log(`Backend server listening at http://localhost:${port}`);
+  });
+}
+
 export default app;

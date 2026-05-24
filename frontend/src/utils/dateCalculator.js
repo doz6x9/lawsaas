@@ -1,0 +1,125 @@
+"use strict";
+/**
+ * Hungarian Legal Deadline Calculator Utility
+ * Handles skipping weekends and statutory national holidays under Hungarian Law.
+ * Dynamically fetches holidays via Nager.Date API with a robust in-memory fallback cache.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.clearHolidayCache = clearHolidayCache;
+exports.calculateLegalDeadline = calculateLegalDeadline;
+// Fallback Cache in case the API goes down or is unreachable
+const FALLBACK_STATIC_HOLIDAYS = new Set([
+    '01-01', // Újév
+    '03-15', // Nemzeti ünnep
+    '05-01', // Munka ünnepe
+    '08-20', // Államalapítás ünnepe
+    '10-23', // Forradalom ünnepe
+    '11-01', // Mindenszentek
+    '12-25', // Karácsony 1.
+    '12-26', // Karácsony 2.
+]);
+const FALLBACK_DYNAMIC_HOLIDAYS_2026 = new Set([
+    '2026-04-03', // Nagypéntek
+    '2026-04-06', // Húsvéthétfő
+    '2026-05-25', // Pünkösdhétfő
+]);
+// In-memory cache for fetched holidays (Year -> Set of YYYY-MM-DD strings)
+let holidayCache = {};
+/**
+ * Expose a way to clear the cache for testing purposes
+ */
+function clearHolidayCache() {
+    holidayCache = {};
+}
+/**
+ * Helper function to format a Date object to YYYY-MM-DD string
+ */
+function getFullDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+/**
+ * Fetches holidays from Nager.Date API for a specific year and caches them.
+ */
+async function fetchAndCacheHolidays(year) {
+    if (holidayCache[year]) {
+        return holidayCache[year];
+    }
+    try {
+        const response = await fetch(`https://date.nager.at/api/v3/PublicHolidays/${year}/HU`);
+        if (!response.ok) {
+            throw new Error(`Nager.Date API returned status ${response.status}`);
+        }
+        const data = await response.json();
+        const holidays = new Set();
+        data.forEach((holiday) => {
+            holidays.add(holiday.date); // format is already YYYY-MM-DD
+        });
+        holidayCache[year] = holidays;
+        return holidays;
+    }
+    catch (error) {
+        console.error(`[DateCalculator] Failed to fetch holidays for ${year}. Using fallback cache. Error:`, error);
+        // Build fallback cache for the requested year
+        const fallbackHolidays = new Set();
+        // Add statics mapped to this year
+        FALLBACK_STATIC_HOLIDAYS.forEach(mmdd => {
+            fallbackHolidays.add(`${year}-${mmdd}`);
+        });
+        // Add dynamics if it's 2026
+        if (year === 2026) {
+            FALLBACK_DYNAMIC_HOLIDAYS_2026.forEach(dateStr => fallbackHolidays.add(dateStr));
+        }
+        // We do NOT permanently cache the fallback in holidayCache[year]
+        // so that subsequent calls might try the API again.
+        return fallbackHolidays;
+    }
+}
+/**
+ * Checks if a given date is a Hungarian national holiday or a weekend.
+ */
+async function isNonWorkingDay(date) {
+    const dayOfWeek = date.getDay();
+    // Check for weekends (0 = Sunday, 6 = Saturday)
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return true;
+    }
+    const year = date.getFullYear();
+    const holidays = await fetchAndCacheHolidays(year);
+    const yyyymmdd = getFullDateString(date);
+    if (holidays.has(yyyymmdd)) {
+        return true;
+    }
+    return false;
+}
+/**
+ * Calculates a legal deadline by adding a specific number of working days to a start date.
+ * Skips weekends and defined Hungarian holidays.
+ *
+ * @param startDate The date of notice / delivery (Kézbesítés dátuma)
+ * @param daysToAdd The number of working days to add
+ * @returns The final deadline Date object
+ */
+async function calculateLegalDeadline(startDate, daysToAdd) {
+    if (daysToAdd < 0) {
+        throw new Error("negativeDaysError");
+    }
+    const resultDate = new Date(startDate.getTime());
+    let remainingDays = daysToAdd;
+    // The day of notice itself (day 0) is usually excluded from the count in procedural law.
+    // The counting starts on the next day.
+    while (remainingDays > 0) {
+        resultDate.setDate(resultDate.getDate() + 1);
+        const isRestDay = await isNonWorkingDay(resultDate);
+        if (!isRestDay) {
+            remainingDays--;
+        }
+    }
+    // Ensure the final date is a working day (move forward if it lands on a holiday/weekend)
+    while (await isNonWorkingDay(resultDate)) {
+        resultDate.setDate(resultDate.getDate() + 1);
+    }
+    return resultDate;
+}
