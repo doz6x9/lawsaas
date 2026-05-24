@@ -113,6 +113,37 @@ app.post('/api/upload', upload.fields([
 /**
  * Endpoint to redact sensitive information from multiple DOCX files.
  */
+app.post('/api/redact-document', upload.single('document'), async (req, res, next) => {
+  try {
+    const file = req.file;
+    let targets: string[] = [];
+
+    if (req.body.targets) {
+      try {
+        targets = JSON.parse(req.body.targets);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid targets array format.' });
+      }
+    }
+
+    if (!file) {
+      return res.status(400).json({ error: 'Document file is required.' });
+    }
+
+    const redactedBuffer = await redactDocument(file.buffer, targets);
+
+    res.set('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.set('Content-Disposition', `attachment; filename="redacted_${file.originalname}"`);
+    res.send(redactedBuffer);
+
+  } catch (error) {
+    console.error('Redaction error:', error);
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'An unknown error occurred during redaction'
+    });
+  }
+});
+
 app.post('/api/redact-documents', upload.array('documents'), async (req, res, next) => {
   try {
     const files = req.files as Express.Multer.File[];

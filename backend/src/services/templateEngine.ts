@@ -3,6 +3,7 @@ import path from 'path';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import axios from 'axios';
+import { Readable } from 'stream';
 
 import { SUPPORTED_TEMPLATES, TemplatePayload, OutputFormat } from '../types/templates';
 
@@ -87,11 +88,11 @@ export async function generateEUDocument(documentType: string, payload: Template
 
     try {
       console.log(`[TemplateEngine] Converting to PDF using ConvertAPI...`);
-      const convertapi = require('convertapi')(convertApiKey);
-      const params = convertapi.createParams();
-      params.add('File', outputBuffer, `${documentType}.docx`);
+      const ConvertAPI = require('convertapi');
+      const convertapi = new ConvertAPI(convertApiKey);
+      const docxFile = await convertapi.upload(Readable.from(outputBuffer), `${documentType}.docx`);
 
-      const result = await convertapi.convert('docx', 'pdf', params);
+      const result = await convertapi.convert('pdf', { File: docxFile }, 'docx');
 
       // Get the first file from the result
       const resultFile = result.files[0];

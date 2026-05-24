@@ -19,6 +19,7 @@ LegalAct is a comprehensive LegalTech Software-as-a-Service platform designed to
 ### 3. Smart Document Redaction
 - **Automated PII Redaction:** Before downloading, users can apply redaction rules to automatically black out sensitive information like phone numbers and email addresses from generated Word documents.
 - **Custom Redaction:** Users can define custom words or phrases to be redacted.
+- **DOCX Upload Redaction:** The automated redaction tool accepts `.docx` files, sends them to the backend, and returns redacted Word documents for download.
 
 ### 4. Contacts / Infringer Directory
 - **Master List:** A dedicated dashboard page (`/contacts`) to view a master list of all stored contacts (infringers).
@@ -59,7 +60,7 @@ LegalAct is a comprehensive LegalTech Software-as-a-Service platform designed to
 - Node.js (v18 or higher)
 - npm (v8 or higher)
 - A Supabase project (URL and Service Role Key required)
-- A ConvertAPI Secret (for DOCX to PDF conversion)
+- A ConvertAPI Secret (required only for DOCX to PDF conversion)
 
 ### 1. Backend Setup
 ```bash
@@ -81,17 +82,45 @@ To run the backend:
 ```bash
 npm run dev
 ```
+The backend runs at `http://localhost:3000`. You can verify it with:
+```bash
+curl http://localhost:3000/api/health
+```
 
 ### 2. Frontend Setup
 ```bash
 cd frontend
 npm install
 ```
+Optionally create `frontend/.env` if your backend is not running on `http://localhost:3000`:
+```
+VITE_API_URL=http://localhost:3000
+```
+
 To run the frontend:
 ```bash
 npm run dev
 ```
-Access the application in your browser at `http://localhost:5173`.
+Access the application in your browser at the Vite URL printed in the terminal, usually `http://localhost:5173`. If that port is already in use, Vite may use `http://localhost:5174`.
+
+### 3. PDF Conversion
+PDF generation uses ConvertAPI. For local development, put your ConvertAPI secret in `backend/.env`:
+```
+CONVERTAPI_SECRET=YOUR_CONVERTAPI_SECRET
+```
+Restart the backend after changing `.env`. DOCX generation and DOCX redaction do not require ConvertAPI.
+
+### 4. Automated Redaction
+The dashboard's Automated Document Redaction tool calls:
+- `POST /api/redact-document` for single-file redaction from the preview flow.
+- `POST /api/redact-documents` for multi-file ZIP redaction.
+
+If the UI shows `Failed to fetch`, make sure the backend is running and reachable:
+```bash
+cd backend
+npm run dev
+```
+Then check `http://localhost:3000/api/health`.
 
 ### Key Routes:
 - `/`: Landing Page
