@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, Clock, ArrowRight, Loader2, Plus, X, Bell } from 'lucide-react';
-import { calculateLegalDeadline } from '../utils/dateCalculator';
+import dateCalculator from '../utils/dateCalculator.ts'; // Changed to default import with .ts extension
 
 interface DeadlineReminder {
   id: string;
@@ -62,7 +62,7 @@ export const DeadlineCalculator: React.FC = () => {
         const [year, month, day] = startDateStr.split('-').map(Number);
         const startDate = new Date(year, month - 1, day);
 
-        const deadlineDate = await calculateLegalDeadline(startDate, daysToAdd as number);
+        const deadlineDate = await dateCalculator.calculateLegalDeadline(startDate, daysToAdd as number); // Access via default import
 
         const locale = i18n.language.startsWith('hu') ? 'hu-HU' : 'en-US';
         const formatted = new Intl.DateTimeFormat(locale, {

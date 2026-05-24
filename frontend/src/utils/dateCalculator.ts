@@ -28,7 +28,7 @@ let holidayCache: Record<number, Set<string>> = {};
 /**
  * Expose a way to clear the cache for testing purposes
  */
-export function clearHolidayCache() {
+function clearHolidayCache() {
   holidayCache = {};
 }
 
@@ -117,7 +117,7 @@ async function isNonWorkingDay(date: Date): Promise<boolean> {
  * @param daysToAdd The number of working days to add
  * @returns The final deadline Date object
  */
-export async function calculateLegalDeadline(startDate: Date, daysToAdd: number): Promise<Date> {
+async function calculateLegalDeadline(startDate: Date, daysToAdd: number): Promise<Date> {
   if (daysToAdd < 0) {
     throw new Error("negativeDaysError");
   }
@@ -143,3 +143,8 @@ export async function calculateLegalDeadline(startDate: Date, daysToAdd: number)
 
   return resultDate;
 }
+
+export default {
+  calculateLegalDeadline,
+  clearHolidayCache,
+};
