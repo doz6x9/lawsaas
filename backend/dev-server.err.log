@@ -1,0 +1,46 @@
+Error fetching contacts directory from Supabase: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.Contacts'",
+  message: "Could not find the table 'public.ContactPhones' in the schema cache"
+}
+Error fetching contacts: Error: Failed to retrieve contacts directory.
+    at getContactsDirectory (E:\legalact\backend\src\engine.ts:270:11)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async E:\legalact\backend\src\api\index.ts:66:22
+Error upserting contacts: {
+  code: 'PGRST204',
+  details: null,
+  hint: null,
+  message: "Could not find the 'user_id' column of 'Contacts' in the schema cache"
+}
+Database import transaction failed: Error: Failed to import contacts: Could not find the 'user_id' column of 'Contacts' in the schema cache
+    at importCasesToDatabase (E:\legalact\backend\src\engine.ts:347:15)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async processLegalBatch (E:\legalact\backend\src\engine.ts:756:5)
+    at async E:\legalact\backend\src\api\index.ts:98:28
+Processing error: Error: Failed to import contacts: Could not find the 'user_id' column of 'Contacts' in the schema cache
+    at importCasesToDatabase (E:\legalact\backend\src\engine.ts:347:15)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async processLegalBatch (E:\legalact\backend\src\engine.ts:756:5)
+    at async E:\legalact\backend\src\api\index.ts:98:28
+Error fetching contacts directory from Supabase: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.Contacts'",
+  message: "Could not find the table 'public.ContactPhones' in the schema cache"
+}
+Error fetching contacts: Error: Failed to retrieve contacts directory.
+    at getContactsDirectory (E:\legalact\backend\src\engine.ts:270:11)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async E:\legalact\backend\src\api\index.ts:66:22
+Error fetching contacts directory from Supabase: {
+  code: 'PGRST205',
+  details: null,
+  hint: "Perhaps you meant the table 'public.Contacts'",
+  message: "Could not find the table 'public.ContactPhones' in the schema cache"
+}
+Error fetching contacts: Error: Failed to retrieve contacts directory.
+    at getContactsDirectory (E:\legalact\backend\src\engine.ts:270:11)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async E:\legalact\backend\src\api\index.ts:66:22

@@ -44,7 +44,7 @@ export const ToolConfigurator: React.FC<ToolConfiguratorProps> = ({ toolId, onCa
     setErrorMessage('');
 
     try {
-      const response = await fetch('http://localhost:3000/api/automations/configure', {
+      const response = await fetch('/api/automations/configure', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

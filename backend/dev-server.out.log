@@ -1,0 +1,8 @@
+
+> backend@1.0.0 dev
+> ts-node src/api/index.ts
+
+[GDPR Retention Service] Scheduled daily data scrubbing at 02:00 AM (Europe/Budapest).
+Backend server listening at http://localhost:3000
+[DocumentRoutes] Generating document type: EuMutualNda as pdf
+[TemplateEngine] Converting to PDF using ConvertAPI...

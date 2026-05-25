@@ -53,7 +53,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   };
 
   const handleArrayInputChange = (fieldId: string, index: number, value: string) => {
-    const currentArray = formData[fieldId] || [''];
+    const currentArray = formData[field.id] || [''];
     const newArray = [...currentArray];
     newArray[index] = value;
     setFormData((prev) => ({
@@ -65,12 +65,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   const addArrayField = (fieldId: string) => {
     setFormData((prev) => ({
       ...prev,
-      [fieldId]: [...(prev[fieldId] || ['']), ''],
+      [fieldId]: [...(prev[field.id] || ['']), ''],
     }));
   };
 
   const removeArrayField = (fieldId: string, index: number) => {
-    const currentArray = formData[fieldId] || [''];
+    const currentArray = formData[field.id] || [''];
     const newArray = currentArray.filter((_: any, i: number) => i !== index);
     setFormData((prev) => ({
       ...prev,
@@ -93,14 +93,14 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
           }
         } else if (!formData[field.id] || String(formData[field.id]).trim() === '') {
           setErrorMessage(`Missing required field: ${field.label}`);
-          setStatus('error');
-          return;
+            setStatus('error');
+            return;
+          }
         }
       }
-    }
 
     try {
-      const response = await fetch('http://localhost:3000/api/documents/generate', {
+      const response = await fetch('/api/documents/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

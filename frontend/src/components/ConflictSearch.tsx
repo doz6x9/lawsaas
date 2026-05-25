@@ -42,7 +42,7 @@ export const ConflictSearch: React.FC = () => {
       setError(null);
 
       try {
-        const response = await fetch(`http://localhost:3000/api/search?query=${encodeURIComponent(debouncedSearchTerm)}`);
+        const response = await fetch(`/api/search?query=${encodeURIComponent(debouncedSearchTerm)}`);
         if (!response.ok) {
           throw new Error('Search failed. Please check the backend connection.');
         }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, Clock, ArrowRight, Loader2, Plus, X, Bell } from 'lucide-react';
-import dateCalculator from '../utils/dateCalculator.ts'; // Changed to default import with .ts extension
+import { calculateLegalDeadline } from '../utils/dateCalculator.ts'; // Corrected to named import with .ts extension
 
 interface DeadlineReminder {
   id: string;
@@ -62,7 +62,7 @@ export const DeadlineCalculator: React.FC = () => {
         const [year, month, day] = startDateStr.split('-').map(Number);
         const startDate = new Date(year, month - 1, day);
 
-        const deadlineDate = await dateCalculator.calculateLegalDeadline(startDate, daysToAdd as number); // Access via default import
+        const deadlineDate = await calculateLegalDeadline(startDate, daysToAdd as number); // Directly use named import
 
         const locale = i18n.language.startsWith('hu') ? 'hu-HU' : 'en-US';
         const formatted = new Intl.DateTimeFormat(locale, {
@@ -163,7 +163,7 @@ export const DeadlineCalculator: React.FC = () => {
                 <div className={`flex-1 flex flex-col items-center justify-center p-6 rounded-lg border-2 transition-all ${calculatedDeadline ? 'bg-yellow-50 border-yellow-400' : 'bg-gray-100 border-transparent'}`}>
                   {isCalculating ? <div className="text-center"><Loader2 className="w-8 h-8 text-blue-600 mx-auto mb-2 animate-spin" /><p className="text-gray-500 text-sm font-semibold">Calculating...</p></div> : !startDateStr ? <div className="text-center"><Clock className="w-8 h-8 text-gray-400 mx-auto mb-2" /><p className="text-gray-500 text-sm font-semibold">{t('calculator.selectStartDate')}</p></div> : daysToAdd === '' ? <div className="text-center"><ArrowRight className="w-8 h-8 text-gray-400 mx-auto mb-2" /><p className="text-gray-500 text-sm font-semibold">{t('calculator.enterDays')}</p></div> : calculatedDeadline ? <div className="text-center"><AlertCircle className="w-8 h-8 text-yellow-500 mx-auto mb-2" /><p className="text-xs text-gray-700 font-semibold mb-1 uppercase tracking-wider">{t('calculator.lastDayOfDeadline')}</p><h3 className="text-xl font-bold text-yellow-600 leading-tight mb-2">{calculatedDeadline}</h3><p className="text-xs text-gray-600">Total calendar days elapsed: <strong>{totalCalendarDays}</strong></p></div> : null}
                 </div>
-                <button onClick={addReminder} disabled={!calculatedDeadline || isCalculating} className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 disabled:opacity-50 transition-colors">
+                <button onClick={() => addReminder()} disabled={!calculatedDeadline || isCalculating} className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600 disabled:opacity-50 transition-colors">
                   <Plus className="w-4 h-4 mr-2" /> Add to Reminders
                 </button>
               </div>

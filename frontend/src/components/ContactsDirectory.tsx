@@ -15,7 +15,7 @@ export const ContactsDirectory: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:3000/api/contacts');
+        const response = await fetch('/api/contacts');
         if (!response.ok) {
           throw new Error(`Failed to fetch contacts: ${response.statusText}`);
         }
