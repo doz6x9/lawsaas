@@ -53,7 +53,7 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   };
 
   const handleArrayInputChange = (fieldId: string, index: number, value: string) => {
-    const currentArray = formData[field.id] || [''];
+    const currentArray = formData[fieldId] || [''];
     const newArray = [...currentArray];
     newArray[index] = value;
     setFormData((prev) => ({
@@ -65,12 +65,12 @@ export const TemplateForm: React.FC<TemplateFormProps> = ({ templateId, onCancel
   const addArrayField = (fieldId: string) => {
     setFormData((prev) => ({
       ...prev,
-      [fieldId]: [...(prev[field.id] || ['']), ''],
+      [fieldId]: [...(prev[fieldId] || ['']), ''],
     }));
   };
 
   const removeArrayField = (fieldId: string, index: number) => {
-    const currentArray = formData[field.id] || [''];
+    const currentArray = formData[fieldId] || [''];
     const newArray = currentArray.filter((_: any, i: number) => i !== index);
     setFormData((prev) => ({
       ...prev,
