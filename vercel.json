@@ -18,6 +18,10 @@
       "dest": "/backend/src/api/index.ts"
     },
     {
+      "src": "/frontend/(.*\\..*)",
+      "dest": "/frontend/$1"
+    },
+    {
       "src": "/(.*\\..*)",
       "dest": "/frontend/$1"
     },

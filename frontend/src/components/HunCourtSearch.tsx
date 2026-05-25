@@ -8,7 +8,7 @@ import {
 } from '../utils/huncourtSearch';
 
 export interface HunCourtSearchProps {
-  supabase: SupabaseClient;
+  supabase: SupabaseClient | null;
 }
 
 export const HunCourtSearch: React.FC<HunCourtSearchProps> = ({ supabase }) => {
@@ -27,6 +27,12 @@ export const HunCourtSearch: React.FC<HunCourtSearchProps> = ({ supabase }) => {
     let mounted = true;
 
     (async () => {
+      if (!supabase) {
+        setYears([]);
+        setYearsLoading(false);
+        return;
+      }
+
       setYearsLoading(true);
       const { years: fetchedYears, error: yearsError } = await fetchAvailableYears(supabase);
       if (mounted) {
@@ -53,6 +59,13 @@ export const HunCourtSearch: React.FC<HunCourtSearchProps> = ({ supabase }) => {
         setResults([]);
         setTotalCount(null);
         setError(null);
+        return;
+      }
+
+      if (!supabase) {
+        setError('Search is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel to enable this database-backed search.');
+        setResults([]);
+        setTotalCount(null);
         return;
       }
 
@@ -237,6 +250,18 @@ export const HunCourtSearch: React.FC<HunCourtSearchProps> = ({ supabase }) => {
             <div>
               <h3 className="font-semibold text-red-800">Search Error</h3>
               <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {!supabase && !error && (
+          <div className="mb-8 p-4 rounded-lg bg-amber-50 border border-amber-200 flex gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-800">Search Not Configured</h3>
+              <p className="text-sm text-amber-700 mt-1">
+                Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel to enable this database-backed search.
+              </p>
             </div>
           </div>
         )}
