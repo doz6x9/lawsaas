@@ -14,9 +14,54 @@ import JSZip from 'jszip';
 
 const app = express();
 const port = process.env.PORT || 3000;
+const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000);
+const rateLimitMax = Number(process.env.RATE_LIMIT_MAX || 120);
+const requestBuckets = new Map<string, { count: number; resetAt: number }>();
+
+app.set('trust proxy', 1);
 
 // Initialize Automated Background Jobs
 scheduleDataScrubbing();
+
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  next();
+});
+
+app.use((req, res, next) => {
+  const now = Date.now();
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const current = requestBuckets.get(ip);
+
+  if (!current || current.resetAt <= now) {
+    requestBuckets.set(ip, { count: 1, resetAt: now + rateLimitWindowMs });
+    return next();
+  }
+
+  current.count += 1;
+  if (current.count > rateLimitMax) {
+    res.setHeader('Retry-After', Math.ceil((current.resetAt - now) / 1000).toString());
+    return res.status(429).json({ error: 'Too many requests. Please retry shortly.' });
+  }
+
+  return next();
+});
+
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  res.on('finish', () => {
+    console.info(JSON.stringify({
+      method: req.method,
+      path: req.path,
+      status: res.statusCode,
+      durationMs: Date.now() - startedAt
+    }));
+  });
+  next();
+});
 
 // Increase body limit for large base64 JSON responses
 app.use(cors());
@@ -36,7 +81,12 @@ app.use('/api/documents', documentRoutes);      // Template Engine API
  * Health check endpoint to verify backend is running.
  */
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Backend is healthy' });
+  res.status(200).json({
+    status: 'ok',
+    service: 'legalact-api',
+    uptimeSeconds: Math.round(process.uptime()),
+    timestamp: new Date().toISOString()
+  });
 });
 
 /**

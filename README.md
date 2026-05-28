@@ -92,9 +92,10 @@ curl http://localhost:3000/api/health
 cd frontend
 npm install
 ```
-Optionally create `frontend/.env` if your backend is not running on `http://localhost:3000`:
+Optionally create `frontend/.env` for Supabase-backed browser features:
 ```
-VITE_API_URL=http://localhost:3000
+VITE_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
 To run the frontend:
@@ -133,11 +134,18 @@ Then check `http://localhost:3000/api/health`.
 
 ## Deployment
 
-### Frontend Deployment (Vercel)
-1.  **Connect your GitHub repository** to Vercel.
-2.  **Set the Root Directory** to `frontend`.
-3.  Vercel will automatically detect Vite and configure the build.
-4.  Ensure `vercel.json` is present in the `frontend` root to handle client-side routing.
+### Vercel Deployment
+1. **Connect your GitHub repository** to Vercel.
+2. **Set the Root Directory** to the repository root, not `frontend` or `backend`.
+3. The root `vercel.json` deploys both `backend/src/api/index.ts` and the `frontend` static build.
+4. Add the production environment variables from `backend/.env.example` and `frontend/.env.example`.
+
+The current Vercel output places frontend static assets under `/frontend`, so the root `vercel.json` keeps explicit routes for `/api`, `/frontend/*`, and the SPA fallback.
+
+### Build Checks
+GitHub Actions runs two checks on pushes and pull requests:
+- `frontend`: `npm ci` and `npm run build`
+- `backend`: `npm ci` and `npx tsc --noEmit`
 
 ### Backend Deployment (Persistent Server - e.g., Render, Railway)
 **Important:** Your backend uses `node-cron` for scheduled tasks (GDPR scrubbing, deadline alerts). Vercel Serverless Functions are NOT suitable for these long-running background jobs. Deploy your backend to a persistent server.

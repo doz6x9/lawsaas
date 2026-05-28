@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UploadCloud, FileSpreadsheet, XCircle, FileArchive, TableProperties, Files, Database } from 'lucide-react';
+import { UploadCloud, FileSpreadsheet, XCircle, FileArchive, TableProperties, Files, Database, Download, ListChecks } from 'lucide-react';
 import { FileState, OutputFormat } from '../types';
 
 interface FileDropZoneProps {
@@ -13,6 +13,7 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ fileState, setFileSt
   const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const sampleWorkbookUrl = `${import.meta.env.BASE_URL}samples/legalact-batch-sample.xlsx`;
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -201,6 +202,43 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ fileState, setFileSt
         </div>
       </div>
 
+      <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-blue-600" />
+              <h3 className="text-lg font-semibold text-gray-900">{t('fileDrop.sampleTitle')}</h3>
+            </div>
+            <p className="mt-2 max-w-2xl text-sm text-gray-600">
+              {t('fileDrop.sampleDescription')}
+            </p>
+          </div>
+          <a
+            href={sampleWorkbookUrl}
+            download="legalact-batch-sample.xlsx"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-blue-600 bg-white px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+          >
+            <Download className="h-4 w-4" />
+            {t('fileDrop.downloadSample')}
+          </a>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <StructureCard
+            title="Cases"
+            columns={['ID Case', 'Pass', 'CustomerName', 'ID Client', 'ID Infringer']}
+          />
+          <StructureCard
+            title="Images"
+            columns={['ID Image', 'ID Case', 'Catalog Image Path']}
+          />
+          <StructureCard
+            title="Contacts"
+            columns={['ID Infringer', 'Company', 'Phone 1']}
+          />
+        </div>
+      </div>
+
       <div
         className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
           disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' :
@@ -260,3 +298,19 @@ export const FileDropZone: React.FC<FileDropZoneProps> = ({ fileState, setFileSt
     </div>
   );
 };
+
+const StructureCard: React.FC<{ title: string; columns: string[] }> = ({ title, columns }) => (
+  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+    <div className="flex items-center gap-2">
+      <FileSpreadsheet className="h-4 w-4 text-green-600" />
+      <h4 className="text-sm font-semibold text-gray-900">{title}</h4>
+    </div>
+    <ul className="mt-3 space-y-1">
+      {columns.map(column => (
+        <li key={column} className="rounded border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-700">
+          {column}
+        </li>
+      ))}
+    </ul>
+  </div>
+);

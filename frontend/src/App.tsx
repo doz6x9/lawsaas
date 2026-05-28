@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { createClient } from '@supabase/supabase-js';
 import { DashboardLayout, TabType } from './components/DashboardLayout';
 import { FileDropZone } from './components/FileDropZone';
 import { ProcessingStatus } from './components/ProcessingStatus';
@@ -14,6 +13,7 @@ import { LandingPage } from './components/LandingPage';
 import ServiceConfigurator from './components/ServiceConfigurator';
 import HunCourtSearch from './components/HunCourtSearch';
 import { DocumentGenerationLibrary } from './components/DocumentGenerationLibrary';
+import { MatterWorkspace } from './components/MatterWorkspace';
 import { PublicIntakeForm } from './pages/PublicIntakeForm';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
@@ -25,12 +25,13 @@ import { ProcessingState, FileState, ProcessingStep, ProcessedFile } from './typ
 import { Play, Loader2 } from 'lucide-react';
 import JSZip from 'jszip';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase =
-  SUPABASE_URL && SUPABASE_ANON_KEY
-    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+const normalizeRoute = (pathname: string) => {
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+  if (basePath && basePath !== '' && pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length) || '/';
+  }
+  return pathname;
+};
 
 interface InternalAppProps {
   onLogout: () => void;
@@ -38,7 +39,7 @@ interface InternalAppProps {
 
 const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<TabType>('home');
+  const [activeTab, setActiveTab] = useState<TabType>('matters');
 
   const INITIAL_STEPS: ProcessingStep[] = [
     { id: 'upload', label: t('dashboard.uploading'), status: 'pending' },
@@ -212,6 +213,8 @@ const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
   const renderContent = () => {
     const commonPadding = "p-4 sm:p-6 lg:p-8";
     switch (activeTab) {
+      case 'matters':
+        return <MatterWorkspace />;
       case 'home':
         return <div className={commonPadding}><DocumentGenerationLibrary /></div>;
       case 'batch':
@@ -296,6 +299,8 @@ const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
         return <div className={commonPadding}><CaseSearch /></div>;
       case 'deadline':
         return <div className={commonPadding}><DeadlineCalculator /></div>;
+      case 'pricing':
+        return <div className={commonPadding}><ServiceConfigurator embedded /></div>;
       case 'settings':
         return (
           <div className={commonPadding}>
@@ -318,12 +323,12 @@ const InternalApp: React.FC<InternalAppProps> = ({ onLogout }) => {
 };
 
 export const App: React.FC = () => {
-  const [route, setRoute] = useState(window.location.pathname);
+  const [route, setRoute] = useState(() => normalizeRoute(window.location.pathname));
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const handlePopState = () => {
-      setRoute(window.location.pathname);
+      setRoute(normalizeRoute(window.location.pathname));
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -332,7 +337,7 @@ export const App: React.FC = () => {
   if (route === '/intake') {
     return <PublicIntakeForm />;
   }
-  if (route === '/services') {
+  if (route === '/pricing' || route === '/services') {
     return <ServiceConfigurator />;
   }
   if (route === '/privacy') {
@@ -345,7 +350,7 @@ export const App: React.FC = () => {
     return <Contact />;
   }
   if (route === '/huncourt') {
-    return <HunCourtSearch supabase={supabase} />;
+    return <HunCourtSearch />;
   }
   if (route === '/use-cases/ip-specialists') {
     return <IpSpecialists />;

@@ -1,157 +1,202 @@
-// huncourtSearch.ts
-import { SupabaseClient } from '@supabase/supabase-js';
+import Papa from 'papaparse';
 
-/**
- * Represents a single HunCourt case record from the database
- */
 export interface HunCourtCase {
   ruling_id: number;
   decision_id: string;
   decision_date: string | null;
   decision_year: number | null;
+  decision_type: string | null;
+  case_id: string | null;
+  petitioner: string | null;
+  competence: string | null;
+  challenged_legal_norm: string | null;
+  challenged_legal_provision: string | null;
+  challenged_norm_type: string | null;
+  government_in_office: string | null;
+  constitutional_provision: string | null;
   subject_matter: string | null;
+  field_of_law: string | null;
   keywords: string | null;
+  ruling: string | null;
+  ruling_type: string | null;
+  violation: string | null;
+  violated_provision: string | null;
   content: string | null;
-  created_at?: string;
 }
 
-/**
- * Options for searching HunCourt cases
- */
-export interface SearchOptions {
-  searchQuery: string;           // User-entered search query
-  selectedYear?: number | null;  // Optional year filter
-  limit?: number;                // Results per page
-  offset?: number;               // Pagination offset
+export interface HunCourtFilters {
+  query: string;
+  year: number | null;
+  decisionType: string;
+  competence: string;
+  fieldOfLaw: string;
+  petitioner: string;
 }
 
-/**
- * Search result wrapper with metadata
- */
-export interface SearchResult {
-  data: HunCourtCase[];
-  error: Error | null;
-  count: number | null;
+export interface HunCourtFilterOptions {
+  years: number[];
+  decisionTypes: string[];
+  competences: string[];
+  fieldsOfLaw: string[];
+  petitioners: string[];
 }
 
-/**
- * Execute a full-text search against huncourt_cases using PostgreSQL FTS with Hungarian configuration.
- *
- * @param supabase - SupabaseClient instance
- * @param opts - Search options (query, year filter, pagination)
- * @returns Promise with data, error, and total count
- */
-export async function searchHuncourtCases(
-  supabase: SupabaseClient,
-  opts: SearchOptions
-): Promise<SearchResult> {
-  const {
-    searchQuery,
-    selectedYear = null,
-    limit = 25,
-    offset = 0
-  } = opts;
+type CsvRow = Record<string, string | undefined>;
 
-  // Prevent full-table scans with empty queries
-  if (!searchQuery || searchQuery.trim().length === 0) {
-    return { data: [], error: null, count: 0 };
-  }
+let cachedCases: Promise<HunCourtCase[]> | null = null;
 
-  try {
-    let query = supabase
-      .from('huncourt_cases')
-      .select('ruling_id, decision_id, decision_date, decision_year, subject_matter, keywords, content', {
-        count: 'estimated'
+function text(value: string | undefined): string | null {
+  const trimmed = (value || '').trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function numberValue(value: string | undefined): number | null {
+  const parsed = Number((value || '').trim());
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalize(value: string | null | undefined): string {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('hu-HU');
+}
+
+function csvCase(row: CsvRow): HunCourtCase {
+  return {
+    ruling_id: numberValue(row['Ruling ID']) || 0,
+    decision_id: text(row['Decision ID']) || 'Unknown decision',
+    decision_date: text(row['Date of decision']),
+    decision_year: numberValue(row['Year of decision']),
+    decision_type: text(row['Type of decision']),
+    case_id: text(row['Case ID']),
+    petitioner: text(row['Petitioner']),
+    competence: text(row['Competence']),
+    challenged_legal_norm: text(row['Legal norm challanged']),
+    challenged_legal_provision: text(row['Legal provision challanged']),
+    challenged_norm_type: text(row['Type of the challanged legal norm']),
+    government_in_office: text(row['Governement in office']),
+    constitutional_provision: text(row['Constitutional provision']),
+    subject_matter: text(row['Subject matter of the case']),
+    field_of_law: text(row['Field of law']),
+    keywords: text(row['Keywords']),
+    ruling: text(row['Ruling']),
+    ruling_type: text(row['Type of ruling']),
+    violation: text(row['Violation']),
+    violated_provision: text(row['Violated provision']),
+    content: text(row['Content of the ruling'])
+  };
+}
+
+export async function loadHuncourtCases(csvUrl = `${import.meta.env.BASE_URL}hunconcourt.csv`): Promise<HunCourtCase[]> {
+  if (!cachedCases) {
+    cachedCases = fetch(csvUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Could not load HUN court CSV (${response.status}).`);
+        }
+        return response.text();
       })
-      // Use textSearch for PostgreSQL full-text search with Hungarian config
-      .textSearch('search_vector', searchQuery.trim(), {
-        config: 'hungarian',
-        type: 'websearch' // Supports natural language: "word1 word2" or "exact phrase"
-      })
-      .order('decision_date', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .then(csvText => {
+        const parsed = Papa.parse<CsvRow>(csvText, {
+          header: true,
+          skipEmptyLines: 'greedy',
+          transformHeader: header => header.trim()
+        });
 
-    // Apply year filter if provided
-    if (selectedYear && selectedYear > 0) {
-      query = query.eq('decision_year', selectedYear);
-    }
+        if (parsed.errors.length > 0) {
+          console.warn('HUN court CSV parse warnings:', parsed.errors.slice(0, 5));
+        }
 
-    const { data, error, count } = await query;
-
-    if (error) {
-      return { data: [], error, count: null };
-    }
-
-    return {
-      data: (data as HunCourtCase[]) ?? [],
-      error: null,
-      count
-    };
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    return { data: [], error, count: null };
+        return parsed.data
+          .map(csvCase)
+          .filter(row => row.ruling_id > 0 || row.decision_id !== 'Unknown decision')
+          .sort((a, b) => {
+            const yearA = a.decision_year || 0;
+            const yearB = b.decision_year || 0;
+            if (yearA !== yearB) return yearB - yearA;
+            return (b.ruling_id || 0) - (a.ruling_id || 0);
+          });
+      });
   }
+
+  return cachedCases;
 }
 
-/**
- * Fetch all unique years from huncourt_cases for populating the year filter dropdown.
- *
- * @param supabase - SupabaseClient instance
- * @returns Promise with array of years (descending order)
- */
-export async function fetchAvailableYears(
-  supabase: SupabaseClient
-): Promise<{ years: number[]; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('huncourt_cases')
-      .select('decision_year', { count: 'exact' })
-      .not('decision_year', 'is', null)
-      .order('decision_year', { ascending: false });
+export function getHuncourtFilterOptions(cases: HunCourtCase[]): HunCourtFilterOptions {
+  const years = new Set<number>();
+  const decisionTypes = new Set<string>();
+  const competences = new Set<string>();
+  const fieldsOfLaw = new Set<string>();
+  const petitioners = new Set<string>();
 
-    if (error) {
-      return { years: [], error };
-    }
+  cases.forEach(item => {
+    if (item.decision_year) years.add(item.decision_year);
+    if (item.decision_type) decisionTypes.add(item.decision_type);
+    if (item.competence) competences.add(item.competence);
+    if (item.field_of_law) fieldsOfLaw.add(item.field_of_law);
+    if (item.petitioner) petitioners.add(item.petitioner);
+  });
 
-    // Extract unique years
-    const yearsSet = new Set<number>();
-    (data ?? []).forEach((row: any) => {
-      const year = Number((row as any).decision_year);
-      if (!Number.isNaN(year) && year > 0) {
-        yearsSet.add(year);
-      }
-    });
-
-    const years = Array.from(yearsSet).sort((a, b) => b - a);
-    return { years, error: null };
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    return { years: [], error };
-  }
+  return {
+    years: Array.from(years).sort((a, b) => b - a),
+    decisionTypes: Array.from(decisionTypes).sort(),
+    competences: Array.from(competences).sort(),
+    fieldsOfLaw: Array.from(fieldsOfLaw).sort(),
+    petitioners: Array.from(petitioners).sort()
+  };
 }
 
-/**
- * Fetch a single case by decision_id for detail view
- */
-export async function fetchCaseByDecisionId(
-  supabase: SupabaseClient,
-  decisionId: string
-): Promise<{ data: HunCourtCase | null; error: Error | null }> {
-  try {
-    const { data, error } = await supabase
-      .from('huncourt_cases')
-      .select('*')
-      .eq('decision_id', decisionId)
-      .single();
+export function filterHuncourtCases(cases: HunCourtCase[], filters: HunCourtFilters): HunCourtCase[] {
+  const terms = normalize(filters.query)
+    .split(/\s+/)
+    .filter(Boolean);
 
-    if (error) {
-      return { data: null, error };
-    }
+  return cases.filter(item => {
+    if (filters.year && item.decision_year !== filters.year) return false;
+    if (filters.decisionType && item.decision_type !== filters.decisionType) return false;
+    if (filters.competence && item.competence !== filters.competence) return false;
+    if (filters.fieldOfLaw && item.field_of_law !== filters.fieldOfLaw) return false;
+    if (filters.petitioner && item.petitioner !== filters.petitioner) return false;
 
-    return { data: (data as HunCourtCase) ?? null, error: null };
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err));
-    return { data: null, error };
-  }
+    if (terms.length === 0) return true;
+
+    const searchable = normalize([
+      item.decision_id,
+      item.case_id,
+      item.petitioner,
+      item.competence,
+      item.subject_matter,
+      item.field_of_law,
+      item.keywords,
+      item.ruling,
+      item.content,
+      item.decision_type,
+      item.challenged_legal_norm,
+      item.challenged_legal_provision
+    ].filter(Boolean).join(' '));
+
+    return terms.every(term => searchable.includes(term));
+  });
 }
 
+export function buildSnippet(item: HunCourtCase, query: string, maxLength = 360): string {
+  const source = item.content || item.ruling || item.subject_matter || 'No ruling content available.';
+  const normalizedSource = normalize(source);
+  const firstTerm = normalize(query).split(/\s+/).find(Boolean);
+
+  if (!firstTerm) {
+    return source.length > maxLength ? `${source.slice(0, maxLength).trim()}...` : source;
+  }
+
+  const index = normalizedSource.indexOf(firstTerm);
+  if (index < 0) {
+    return source.length > maxLength ? `${source.slice(0, maxLength).trim()}...` : source;
+  }
+
+  const start = Math.max(0, index - 120);
+  const end = Math.min(source.length, start + maxLength);
+  const prefix = start > 0 ? '...' : '';
+  const suffix = end < source.length ? '...' : '';
+  return `${prefix}${source.slice(start, end).trim()}${suffix}`;
+}

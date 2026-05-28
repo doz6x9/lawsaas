@@ -1,14 +1,10 @@
--- ==========================================
--- LEGALACT MVP: SINGLE-FIRM SUPABASE SCHEMA
--- ==========================================
--- This schema is intentionally single-firm for the MVP.
--- user_id columns are nullable metadata only; they do not reference auth.users.
+-- Single-firm MVP contact-directory compatibility migration.
+-- Removes auth.users foreign-key dependencies so backend imports can succeed.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Remove older auth.users constraints if this database was initialized with the hardened schema.
 ALTER TABLE IF EXISTS public."Contacts" DROP CONSTRAINT IF EXISTS "Contacts_user_id_fkey";
 ALTER TABLE IF EXISTS public."ContactPhones" DROP CONSTRAINT IF EXISTS "ContactPhones_user_id_fkey";
 ALTER TABLE IF EXISTS public."Cases" DROP CONSTRAINT IF EXISTS "Cases_user_id_fkey";
@@ -60,31 +56,6 @@ CREATE TABLE IF NOT EXISTS public."AuditLogs" (
   "createdAt" timestamptz DEFAULT now()
 );
 
--- Tables still used by existing backend modules.
-CREATE TABLE IF NOT EXISTS public."AutomationsConfig" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "toolId" text NOT NULL UNIQUE,
-  "configuration" jsonb NOT NULL DEFAULT '{}'::jsonb,
-  "isActive" boolean NOT NULL DEFAULT true,
-  "updatedAt" timestamptz DEFAULT now(),
-  "user_id" uuid
-);
-
-CREATE TABLE IF NOT EXISTS public."Invoices" (
-  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  "caseId" uuid NOT NULL REFERENCES public."Cases"("idCase") ON DELETE CASCADE,
-  "amount" numeric(10, 2) NOT NULL,
-  "currency" text NOT NULL DEFAULT 'HUF',
-  "dueDate" timestamptz NOT NULL,
-  "recipientEmail" text NOT NULL,
-  "isPaid" boolean NOT NULL DEFAULT false,
-  "sentReminderCount" integer NOT NULL DEFAULT 0,
-  "lastReminderSentAt" timestamptz,
-  "createdAt" timestamptz DEFAULT now(),
-  "user_id" uuid
-);
-
--- Make existing hardened databases compatible with the single-firm MVP.
 ALTER TABLE IF EXISTS public."Contacts" ALTER COLUMN "user_id" DROP NOT NULL;
 ALTER TABLE IF EXISTS public."ContactPhones" ALTER COLUMN "user_id" DROP NOT NULL;
 ALTER TABLE IF EXISTS public."Cases" ALTER COLUMN "user_id" DROP NOT NULL;
@@ -97,9 +68,7 @@ CREATE INDEX IF NOT EXISTS "idx_contacts_company" ON public."Contacts"("company"
 CREATE INDEX IF NOT EXISTS "idx_contacts_company_trgm" ON public."Contacts" USING gin ("company" gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS "idx_contactphones_idInfringer" ON public."ContactPhones"("idInfringer");
 CREATE INDEX IF NOT EXISTS "idx_cases_idInfringer" ON public."Cases"("idInfringer");
-CREATE INDEX IF NOT EXISTS "idx_cases_created_scrubbed" ON public."Cases"("createdAt", "isScrubbed");
 CREATE INDEX IF NOT EXISTS "idx_images_idCase" ON public."Images"("idCase");
-CREATE INDEX IF NOT EXISTS "idx_invoices_duedate_ispaid" ON public."Invoices"("dueDate", "isPaid");
 
 CREATE OR REPLACE FUNCTION public.search_conflicts_fuzzy(search_term text)
 RETURNS TABLE (
@@ -118,12 +87,3 @@ BEGIN
   ORDER BY "similarity" DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Backend uses the service-role key. Direct browser reads/writes are not required for the MVP schema.
-ALTER TABLE public."Contacts" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."ContactPhones" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."Cases" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."Images" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."AuditLogs" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."AutomationsConfig" DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public."Invoices" DISABLE ROW LEVEL SECURITY;

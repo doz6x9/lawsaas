@@ -70,7 +70,7 @@ export const ConflictSearch: React.FC = () => {
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
             <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
             <a href="#usecases" className="text-gray-600 hover:text-blue-600 transition-colors">Use Cases</a>
-            <a href="/services" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
+            <a href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
             <a href="/intake" className="text-gray-600 hover:text-blue-600 transition-colors">Portal</a>
           </nav>
           <div className="md:hidden">
@@ -84,7 +84,7 @@ export const ConflictSearch: React.FC = () => {
             <nav className="flex flex-col items-center gap-4 py-4 text-sm font-medium">
               <a href="#features" className="text-gray-600 hover:text-blue-600 transition-colors">Features</a>
               <a href="#usecases" className="text-gray-600 hover:text-blue-600 transition-colors">Use Cases</a>
-              <a href="/services" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
+              <a href="/pricing" className="text-gray-600 hover:text-blue-600 transition-colors">Pricing</a>
               <a href="/intake" className="text-gray-600 hover:text-blue-600 transition-colors">Portal</a>
             </nav>
           </div>

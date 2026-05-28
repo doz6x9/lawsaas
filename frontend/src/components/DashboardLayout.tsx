@@ -8,6 +8,7 @@ import {
   User,
   Home,
   FileText,
+  Briefcase,
   Users,
   ShieldAlert,
   Calendar,
@@ -15,11 +16,13 @@ import {
   Database,
   Menu,
   X,
-  Eraser
+  Eraser,
+  CreditCard,
+  Workflow
 } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 
-export type TabType = 'batch' | 'contacts' | 'conflict' | 'deadline' | 'settings' | 'home' | 'caseSearch' | 'redaction';
+export type TabType = 'matters' | 'batch' | 'contacts' | 'conflict' | 'deadline' | 'settings' | 'home' | 'caseSearch' | 'redaction' | 'pricing';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -36,6 +39,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
     <>
       <nav className="flex-1 py-4">
         <ul className="space-y-0.5">
+          <li>
+            <button
+              onClick={() => onTabChange('matters')}
+              className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
+                activeTab === 'matters'
+                  ? 'bg-white font-semibold border-l-4 border-[#0078D4] text-gray-900'
+                  : 'text-gray-700 hover:bg-gray-200 font-normal border-l-4 border-transparent'
+              }`}
+            >
+              <Briefcase className={`w-5 h-5 mr-3 shrink-0 ${activeTab === 'matters' ? 'text-[#0078D4]' : 'text-gray-600'}`} />
+              Matters
+            </button>
+          </li>
           <li>
             <button
               onClick={() => onTabChange('home')}
@@ -140,6 +156,20 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
 
           <li>
             <button
+              onClick={() => onTabChange('pricing')}
+              className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
+                activeTab === 'pricing'
+                  ? 'bg-white font-semibold border-l-4 border-[#0078D4] text-gray-900'
+                  : 'text-gray-700 hover:bg-gray-200 font-normal border-l-4 border-transparent'
+              }`}
+            >
+              <CreditCard className={`w-5 h-5 mr-3 shrink-0 ${activeTab === 'pricing' ? 'text-[#0078D4]' : 'text-gray-600'}`} />
+              Pricing
+            </button>
+          </li>
+
+          <li>
+            <button
               onClick={() => onTabChange('settings')}
               className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
                 activeTab === 'settings'
@@ -173,7 +203,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children, acti
           </button>
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => onTabChange('home')}>
             <div className="w-8 h-8 bg-white/10 rounded-sm flex items-center justify-center">
-              <Grip className="w-5 h-5 text-white" />
+              <Workflow className="w-5 h-5 text-white" />
             </div>
             <span className="text-base font-semibold tracking-wide hidden sm:inline">LegalAct</span>
           </div>

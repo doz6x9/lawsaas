@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Briefcase,
   ArrowRight,
   ShieldCheck,
   FileText,
@@ -16,7 +15,9 @@ import {
   ClipboardCheck,
   Database,
   UploadCloud,
+  Workflow, // Added Workflow icon
 } from 'lucide-react';
+import { Modal } from './Modal'; // Import the Modal component
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -171,13 +172,133 @@ const SectionHeading = ({
 const Logo = () => (
   <div className="flex items-center gap-3">
     <div className="w-10 h-10 bg-[#0078D4] rounded-xl flex items-center justify-center shadow-sm">
-      <Briefcase className="w-6 h-6 text-white" />
+      <Workflow className="w-6 h-6 text-white" /> {/* Changed icon to Workflow */}
     </div>
     <span className="text-xl font-bold text-gray-900">LegalAct</span>
   </div>
 );
 
+const PRIVACY_POLICY_CONTENT = `
+  <h1 class="text-4xl font-extrabold text-gray-900 mb-6">Privacy Policy</h1>
+  <p class="text-md text-gray-500 mb-10">Last Updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+  <section>
+    <h2>1. Introduction</h2>
+    <p>
+      At LegalAct ("we", "our", or "us"), we are committed to protecting your privacy and ensuring the security of your personal data. This Privacy Policy explains how we collect, use, and safeguard information when you use our LegalTech software-as-a-service platform.
+    </p>
+  </section>
+
+  <section>
+    <h2>2. GDPR Compliance & Data Handling</h2>
+    <p>
+      We process all data in strict compliance with the General Data Protection Regulation (GDPR) and Hungarian data protection laws (NAIH guidelines).
+    </p>
+    <ul>
+      <li><strong>Automated Data Scrubbing:</strong> Evidence images and raw datasets are automatically scrubbed and permanently deleted from our servers 30 days after processing.</li>
+      <li><strong>Data Minimization:</strong> We only collect information strictly necessary to perform automated document generation and conflict searching.</li>
+      <li><strong>Encryption:</strong> All data is encrypted in transit (HTTPS/TLS) and at rest (AES-256).</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Information We Collect</h2>
+    <p>
+      When you use our services, we may collect the following types of information:
+    </p>
+    <ul>
+      <li><strong>Account Data:</strong> Name, email address, and professional affiliation.</li>
+      <li><strong>Client Data:</strong> Information inputted into our Client Intake Portal (e.g., names, company details, phone numbers).</li>
+      <li><strong>Evidence Data:</strong> Links and metadata pertaining to legal evidence submitted for document generation.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>4. Third-Party Services</h2>
+    <p>
+      We do not sell, rent, or trade your personal information to third parties. We may utilize secure, compliant third-party sub-processors (such as cloud hosting providers) strictly for the purpose of operating the LegalAct platform.
+    </p>
+  </section>
+
+  <section>
+    <h2>5. Your Rights</h2>
+    <p>
+      Under the GDPR, you have the right to access, rectify, or erase your personal data. You may also have the right to restrict or object to certain processing. To exercise these rights, please contact our Data Protection Officer.
+    </p>
+  </section>
+
+  <section>
+    <h2>6. Contact Us</h2>
+    <p>
+      If you have any questions regarding this Privacy Policy or how your data is handled, please contact us at <a href="mailto:privacy@legalact.com">privacy@legalact.com</a>.
+    </p>
+  </section>
+`;
+
+const TERMS_OF_SERVICE_CONTENT = `
+  <h1 class="text-4xl font-extrabold text-gray-900 mb-6">Terms of Service</h1>
+  <p class="text-md text-gray-500 mb-10">Last Updated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+  <section>
+    <h2>1. Agreement to Terms</h2>
+    <p>
+      By accessing or using the LegalAct platform, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access our services.
+    </p>
+  </section>
+
+  <section>
+    <h2>2. Use of Service</h2>
+    <p>
+      LegalAct provides automated document generation, conflict searching, and legal timeline calculation tools. These tools are designed to assist legal professionals but do not constitute legal advice. You are solely responsible for verifying the accuracy and legal validity of any documents generated using our platform.
+    </p>
+  </section>
+
+  <section>
+    <h2>3. User Accounts</h2>
+    <p>
+      You must safeguard your account credentials. LegalAct is not liable for any unauthorized access resulting from your failure to maintain secure passwords.
+    </p>
+  </section>
+
+  <section>
+    <h2>4. Data Ownership</h2>
+    <p>
+      You retain all rights to the data you upload to the platform. By uploading data, you grant us a temporary license to process it strictly for the purpose of providing the requested services.
+    </p>
+  </section>
+
+  <section>
+    <h2>5. Service Availability</h2>
+    <p>
+      While we strive for 99.9% uptime, we do not guarantee that the service will be uninterrupted or error-free. We reserve the right to perform scheduled maintenance.
+    </p>
+  </section>
+
+  <section>
+    <h2>6. Limitation of Liability</h2>
+    <p>
+      In no event shall LegalAct, nor its directors, employees, or partners, be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the platform.
+    </p>
+  </section>
+`;
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalContent, setModalContent] = useState('');
+
+  const openModal = (title: string, content: string) => {
+    setModalTitle(title);
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalTitle('');
+    setModalContent('');
+  };
+
   return (
     <div className="min-h-screen bg-[#FAF9F8] text-gray-900 font-sans overflow-x-hidden">
       <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
@@ -202,6 +323,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               className="text-gray-700 hover:text-[#0078D4] transition-colors hidden md:block"
             >
               Use Cases
+            </a>
+            <a
+              href="/pricing"
+              className="text-gray-700 hover:text-[#0078D4] transition-colors hidden md:block"
+            >
+              Pricing
             </a>
             <a
               href="/intake"
@@ -230,7 +357,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-14 lg:gap-16 items-center">
             <div>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-100 rounded-full text-sm font-semibold text-[#0078D4] mb-6">
-                <ShieldCheck className="w-4 h-4" />
+                <ShieldCheck className="w-2 h-2" />
                 Legal workflow automation for modern firms
               </div>
 
@@ -374,7 +501,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </div>
 
             <div className="p-5">
-              <p className="text-3xl font-bold text-[#0078D4] mb-2">DOCX</p>
+              <p className="text-3xl font-bold text-[#0078D4] mb-2">DOCX , PDF</p>
               <p className="text-gray-600 font-medium">
                 Document generation support
               </p>
@@ -636,20 +763,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <p className="font-semibold text-gray-900 mb-4">Legal</p>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a
-                    href="/privacy"
-                    className="hover:text-[#0078D4] transition-colors"
+                  <span
+                    onClick={() => openModal('Privacy Policy', PRIVACY_POLICY_CONTENT)}
+                    className="cursor-pointer hover:text-[#0078D4] transition-colors"
                   >
                     Privacy Policy
-                  </a>
+                  </span>
                 </li>
                 <li>
-                  <a
-                    href="/terms"
-                    className="hover:text-[#0078D4] transition-colors"
+                  <span
+                    onClick={() => openModal('Terms of Service', TERMS_OF_SERVICE_CONTENT)}
+                    className="cursor-pointer hover:text-[#0078D4] transition-colors"
                   >
                     Terms of Service
-                  </a>
+                  </span>
                 </li>
               </ul>
             </div>
@@ -661,18 +788,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </p>
 
             <div className="flex gap-6 text-sm text-gray-600">
-              <a
-                href="/privacy"
-                className="hover:text-[#0078D4] transition-colors"
+              <span
+                onClick={() => openModal('Privacy Policy', PRIVACY_POLICY_CONTENT)}
+                className="cursor-pointer hover:text-[#0078D4] transition-colors"
               >
                 Privacy
-              </a>
-              <a
-                href="/terms"
-                className="hover:text-[#0078D4] transition-colors"
+              </span>
+              <span
+                onClick={() => openModal('Terms of Service', TERMS_OF_SERVICE_CONTENT)}
+                className="cursor-pointer hover:text-[#0078D4] transition-colors"
               >
                 Terms
-              </a>
+              </span>
               <a
                 href="/contact"
                 className="hover:text-[#0078D4] transition-colors"
@@ -683,6 +810,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </div>
         </div>
       </footer>
+
+      <Modal title={modalTitle} isOpen={isModalOpen} onClose={closeModal}>
+        <div dangerouslySetInnerHTML={{ __html: modalContent }} />
+      </Modal>
     </div>
   );
 };
