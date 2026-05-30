@@ -126,7 +126,8 @@ Then check `http://localhost:3000/api/health`.
 ### Key Routes:
 - `/`: Landing Page
 - `/intake`: Public Client Intake Form
-- `/services`: Public Services/Pricing Page
+- `/pricing`: Public Pricing Page
+- `/services`: Legacy alias for Pricing
 - `/privacy`: Privacy Policy
 - `/terms`: Terms of Service
 - `/contact`: Contact Us
@@ -142,10 +143,21 @@ Then check `http://localhost:3000/api/health`.
 
 The current Vercel output places frontend static assets under `/frontend`, so the root `vercel.json` keeps explicit routes for `/api`, `/frontend/*`, and the SPA fallback.
 
-### Build Checks
-GitHub Actions runs two checks on pushes and pull requests:
-- `frontend`: `npm ci` and `npm run build`
-- `backend`: `npm ci` and `npx tsc --noEmit`
+### CI/CD
+GitHub Actions runs CI on every pull request and every push to `master`:
+- Backend: `npm ci` and `npx tsc --noEmit`
+- Frontend: `npm ci`, `npm run build`, and a CSV smoke check for `frontend/public/hunconcourt.csv`
+
+Production deployment is handled by `.github/workflows/vercel-production.yml`. It runs after CI succeeds on `master` and can also be started manually from the Actions tab.
+
+Add these GitHub repository secrets before enabling the Vercel deploy workflow:
+```
+VERCEL_TOKEN=
+VERCEL_ORG_ID=
+VERCEL_PROJECT_ID=
+```
+
+If Vercel Git auto-deploy is already enabled, either keep using that as your CD path or disable it to avoid duplicate production deployments from both Vercel and GitHub Actions.
 
 ### Backend Deployment (Persistent Server - e.g., Render, Railway)
 **Important:** Your backend uses `node-cron` for scheduled tasks (GDPR scrubbing, deadline alerts). Vercel Serverless Functions are NOT suitable for these long-running background jobs. Deploy your backend to a persistent server.
